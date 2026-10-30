@@ -72,9 +72,10 @@ menus/editor/Settings, Extract text, pins (F3, wheel zoom, Esc, double-click), M
 overlay magnifier + C, AX snapping with wheel steps (TextEdit: text entry area → scroll area → window),
 scrolling capture (stitched 1348 px / 8 frames; Done opens the editor), GIF recording (128 frames, Sitch's
 own windows absent). Fixed on the way: Settings split into four tabs (too tall), "Edit" menu wording,
-scrolling Done did nothing (weak self), hand-off now brings the region's app to the front (this last one
-built and unit-tested, not re-driven). Not exercised: MP4 recording, ⌥⌘P, the line's new photo menu items. MediaMini on this Mac
-has no `cli.py` (only the GUI app), so post-save compression can't run until one exists. RapidOCR isn't
+scrolling Done did nothing (weak self), hand-off now brings the region's app to the front, captures hung
+on the line carry their DPI (a Retina capture pinned from the line came out twice its size). All re-driven
+and passing, plus MP4 recording, ⌥⌘P and the line's Pin / MinerU photo items. MediaMini now has a
+`cli.py` (in `~/MediaMini`, its own repo) and post-save compression was verified from Sitch. RapidOCR isn't
 installed in any Python here (Vision is the default). No Developer ID in this keychain: builds are ad-hoc.
 
 ## Next steps

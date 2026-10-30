@@ -195,12 +195,15 @@ public final class ShelfController: NSObject, NSMenuDelegate {
 
     /// A Sitch capture: written to the line's folder and hung at once, lifting off from where
     /// it was taken (`sourceRect`, global coordinates with the origin at the top left).
-    public func hang(image: CGImage, sourceRect: CGRect?) {
+    /// `pointScale` (2 for a Retina capture) is written as the PNG's DPI, so the file keeps its on-screen
+    /// size when it is pinned or opened in Sitch's editor later.
+    public func hang(image: CGImage, sourceRect: CGRect?, pointScale: CGFloat = 1) {
         let url = Inbox.newCapturePath()
         do {
             try FileManager.default.createDirectory(at: Inbox.folder, withIntermediateDirectories: true)
             guard let dest = CGImageDestinationCreateWithURL(url as CFURL, "public.png" as CFString, 1, nil) else { return }
-            CGImageDestinationAddImage(dest, image, nil)
+            let dpi = 72 * max(1, pointScale)
+            CGImageDestinationAddImage(dest, image, [kCGImagePropertyDPIWidth: dpi, kCGImagePropertyDPIHeight: dpi] as CFDictionary)
             guard CGImageDestinationFinalize(dest) else { throw CocoaError(.fileWriteUnknown) }
         } catch {
             log.error("Could not save a capture for the line: \(error.localizedDescription, privacy: .public)")

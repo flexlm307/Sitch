@@ -149,7 +149,7 @@ final class AppController {
             guard let self else { return }
             rememberRegion(result)
             defer { returnFocusIfIdle() }
-            if settings.afterHang { shelf?.hang(image: result.image, sourceRect: result.sourceRect) }
+            if settings.afterHang { shelf?.hang(image: result.image, sourceRect: result.sourceRect, pointScale: result.pointScale) }
             if toClipboard, ClipboardHelper.copy(result.image, pointScale: result.pointScale) {
                 Toast.show("Copied to clipboard.", thumbnail: result.image)
                 return
@@ -223,7 +223,7 @@ final class AppController {
             }
         }
         if settings.afterHang, let shelf {
-            shelf.hang(image: result.image, sourceRect: result.sourceRect)
+            shelf.hang(image: result.image, sourceRect: result.sourceRect, pointScale: result.pointScale)
             handled = true
         }
         if let into {
