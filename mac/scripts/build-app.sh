@@ -30,6 +30,12 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/Sitch" "$APP/Contents/MacOS/"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 cp ../LICENSE "$APP/Contents/Resources/LICENSE.txt"
+# The screenshot line's English/Arabic tables. In a subfolder, not top-level .lproj folders,
+# so macOS doesn't take Sitch for an Arabic-localized app (SitchShelf/Localization.swift).
+for lproj in Sources/SitchShelf/Resources/*.lproj; do
+    mkdir -p "$APP/Contents/Resources/Line/$(basename "$lproj")"
+    cp "$lproj"/*.strings "$APP/Contents/Resources/Line/$(basename "$lproj")/"
+done
 # The installer window's art lives inside the bundle (sealed by the signature below): Finder never
 # lists package contents, so even users who show hidden files don't see a .background folder.
 BG="$(mktemp -d)"

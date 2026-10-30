@@ -1,5 +1,6 @@
 import AppKit
 import SitchCore
+import SitchShelf
 
 /// Settings: General / Capture / Editor pages (windows/Sitch/Editor/SettingsWindow.xaml parity).
 /// Native AppKit controls; every change persists immediately, like the Windows window.
@@ -251,6 +252,16 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         let save = checkbox("Save to file", s.afterSave) { [weak self] on in
             self?.app.settings.afterSave = on; self?.app.saveSettings()
         }
+        let hang = checkbox("Hang on the screenshot line", s.afterHang) { [weak self] on in
+            self?.app.settings.afterHang = on; self?.app.saveSettings()
+        }
+        let line = checkbox("Keep captures on a line along the top of the screen (⌃⌥T)", s.lineEnabled) { [weak self] on in
+            self?.app.settings.lineEnabled = on
+            self?.app.saveSettings()
+            self?.app.updateShelf()
+        }
+        let lineSettings = NSButton(title: "Line Settings…", target: nil, action: nil)
+        bind(lineSettings) { [weak self] in self?.app.shelf?.showSettings() }
 
         let timerValues = [0, 3, 5, 10]
         let timer = NSPopUpButton(frame: .zero, pullsDown: false)
@@ -273,7 +284,9 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             note("Click a shortcut, then press the new combination (e.g. ⌥⌘4). Esc reverts."),
             section("Saving"), folderRow,
             row("Default format", format, labelWidth: 110),
-            section("After capturing"), show, copy, save,
+            section("After capturing"), show, copy, save, hang,
+            section("Screenshot line"), line, lineSettings,
+            note("The line stays off while the standalone Snapline app is running."),
             section("Timer & watcher"),
             row("Capture timer", timer, labelWidth: 110),
             watch,

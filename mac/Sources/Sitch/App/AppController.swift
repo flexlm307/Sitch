@@ -1,6 +1,7 @@
 import AppKit
 import ImageIO
 import SitchCore
+import SitchShelf
 import UniformTypeIdentifiers
 
 /// App-wide coordinator — the Mac counterpart of windows/Sitch/App.xaml.cs: owns settings,
@@ -19,6 +20,8 @@ final class AppController {
     private var watcher: ScreenshotWatcher?
     private var menuBar: MenuBarController?
     private var editors: [EditorWindowController] = []
+    /// CONTRACT. The screenshot line (merged from Snapline); nil while it is off or Snapline runs.
+    private(set) var shelf: ShelfController?
 
     private static let hkCapture = 1, hkRecapture = 2, hkQuickCopy = 3
 
@@ -48,6 +51,7 @@ final class AppController {
         }
         registerHotkeys()
         updateScreenshotWatcher()
+        updateShelf()
         handle(arguments: arguments)
 
         // Fresh install launched with no task: without this, the only sign of life is a small
@@ -138,6 +142,7 @@ final class AppController {
             guard let self else { return }
             rememberRegion(result)
             defer { returnFocusIfIdle() }
+            if settings.afterHang { shelf?.hang(image: result.image, sourceRect: result.sourceRect) }
             if toClipboard, ClipboardHelper.copy(result.image, pointScale: result.pointScale) {
                 Toast.show("Copied to clipboard.", thumbnail: result.image)
                 return
@@ -185,6 +190,10 @@ final class AppController {
             } catch {
                 Toast.show("Couldn't save the capture.\n\(error.localizedDescription)")
             }
+        }
+        if settings.afterHang, let shelf {
+            shelf.hang(image: result.image, sourceRect: result.sourceRect)
+            handled = true
         }
         if let into {
             into.addTab(EditorWindowController(image: result.image, title: "Untitled", pointScale: result.pointScale))
@@ -329,6 +338,28 @@ final class AppController {
             if !editor.confirmClose() { return false }
         }
         for editor in editors { editor.closeWithoutPrompt() }
+        // Puts the macOS screenshot settings back if the line was handling screenshots.
+        shelf?.stop()
         return true
+    }
+
+    // MARK: - Screenshot line (CONTRACT)
+
+    /// Starts or stops the line to match `settings.lineEnabled`. It stays off while the
+    /// standalone Snapline app runs: two lines would fight over the top edge.
+    func updateShelf() {
+        let want = settings.lineEnabled && !ShelfController.snaplineRunning
+        if want == (shelf != nil) { return }
+        guard want else {
+            shelf?.stop()
+            shelf = nil
+            return
+        }
+        let line = ShelfController()
+        line.onEdit = { [weak self] url in self?.openImage(at: url, saveBack: true) }
+        line.onNewCapture = { [weak self] in self?.captureRegion() }
+        line.onSitchSettings = { [weak self] in self?.showSettings() }
+        line.onQuit = { NSApp.terminate(nil) }
+        shelf = line
     }
 }

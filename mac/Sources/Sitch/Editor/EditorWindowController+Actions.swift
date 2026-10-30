@@ -1,5 +1,6 @@
 import AppKit
 import SitchCore
+import SitchShelf
 import UniformTypeIdentifiers
 
 /// Output actions, menu commands (first-responder targets wired by MainMenu) and the canvas
@@ -68,6 +69,7 @@ extension EditorWindowController: NSMenuItemValidation {
         do {
             try Exporters.save(img, to: url, pointScale: doc.pointScale)
             doc.dirty = false
+            AppController.shared.shelf?.fileSaved(url)
             Toast.show("Saved \(url.lastPathComponent)")
             return true
         } catch {

@@ -13,6 +13,8 @@ enum ClipboardHelper {
         if let tiff = Exporters.data(image, type: .tiff, pointScale: pointScale) {
             ok = pb.setData(tiff, forType: .tiff) && ok
         }
+        // Marks the copy as Sitch's, so the screenshot line doesn't catch it as a new capture.
+        pb.setData(Data(), forType: NSPasteboard.PasteboardType("io.github.phalladar.Sitch.copy"))
         return ok
     }
 }

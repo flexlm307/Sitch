@@ -28,7 +28,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
     var bold = true
     var italic = false
     var saveFormat = "png"
-    /// Set for `--edit` (e.g. Snapline's "Edit in Sitch"): Save writes back into this file.
+    /// Set for `--edit` and for photos opened from the screenshot line: Save writes back into this file.
     var saveBackURL: URL?
 
     /// Crop aspect constraint (0 = free); read by the canvas's handle math.

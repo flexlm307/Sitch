@@ -1,5 +1,6 @@
 import AppKit
 import SitchCore
+import SitchShelf
 
 /// Menu-bar presence: the Mac counterpart of windows/Sitch/Shell/TrayController.cs. Same menu;
 /// clicking opens it (macOS convention — the Windows tray icon captured on left-click).
@@ -10,6 +11,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private let recaptureItem = NSMenuItem(title: "Recapture Last Region", action: #selector(AppDelegate.recaptureLast(_:)), keyEquivalent: "")
     private let quickCopyItem = NSMenuItem(title: "Quick Capture → Clipboard", action: #selector(AppDelegate.quickCaptureToClipboard(_:)), keyEquivalent: "")
     private let fullScreen = NSMenuItem(title: "Capture Full Screen", action: nil, keyEquivalent: "")
+    // The screenshot line (merged from Snapline): shown only while it runs.
+    private let lineItem = NSMenuItem(title: "Show Screenshot Line", action: #selector(toggleLine), keyEquivalent: "")
+    private let noteItem = NSMenuItem(title: "New Note", action: nil, keyEquivalent: "")
+    private let lineSettingsItem = NSMenuItem(title: "Line Settings…", action: #selector(showLineSettings), keyEquivalent: "")
+    private let lineSeparator = NSMenuItem.separator()
 
     override init() {
         super.init()
@@ -29,6 +35,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(.separator())
         menu.addItem(withTitle: "Open Image…", action: #selector(AppDelegate.openImage(_:)), keyEquivalent: "")
         menu.addItem(.separator())
+        noteItem.submenu = NSMenu()
+        for entry in [lineItem, noteItem, lineSettingsItem, lineSeparator] { menu.addItem(entry) }
         menu.addItem(withTitle: "Settings…", action: #selector(AppDelegate.showSettings(_:)), keyEquivalent: "")
         menu.addItem(withTitle: "About Sitch", action: #selector(AppDelegate.showAbout(_:)), keyEquivalent: "")
         menu.addItem(.separator())
@@ -36,6 +44,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         for entry in menu.items where entry.action != nil && entry.action != #selector(NSApplication.terminate(_:)) {
             entry.target = NSApp.delegate
         }
+        lineItem.target = self
+        lineSettingsItem.target = self
+        menu.delegate = self
         item.menu = menu
         refreshShortcuts()
     }
@@ -47,8 +58,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         Self.show(AppController.shared.settings.quickCopyHotkey, on: quickCopyItem)
     }
 
-    // Displays come and go — rebuild the submenu each time it opens.
+    // Displays come and go — rebuild the submenu each time it opens. The main menu refreshes
+    // the screenshot line's items.
     func menuNeedsUpdate(_ menu: NSMenu) {
+        if menu === item.menu { updateLineItems(); return }
         menu.removeAllItems()
         for (i, d) in CaptureController.displays().enumerated() {
             let entry = NSMenuItem(
@@ -59,6 +72,29 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             menu.addItem(entry)
         }
         if menu.items.isEmpty { menu.addItem(withTitle: "No displays", action: nil, keyEquivalent: "") }
+    }
+
+    private func updateLineItems() {
+        let shelf = AppController.shared.shelf
+        for entry in [lineItem, noteItem, lineSettingsItem, lineSeparator] { entry.isHidden = shelf == nil }
+        guard let shelf else { return }
+        lineItem.title = shelf.isRevealed ? "Hide Screenshot Line" : "Show Screenshot Line"
+        lineItem.keyEquivalent = "t"
+        lineItem.keyEquivalentModifierMask = [.control, .option]
+        noteItem.submenu?.removeAllItems()
+        for color in ShelfController.noteColors {
+            let entry = NSMenuItem(title: ShelfController.noteName(color), action: #selector(newNote(_:)), keyEquivalent: "")
+            entry.target = self
+            entry.representedObject = color
+            noteItem.submenu?.addItem(entry)
+        }
+    }
+
+    @objc private func toggleLine() { AppController.shared.shelf?.toggleLine() }
+    @objc private func showLineSettings() { AppController.shared.shelf?.showSettings() }
+    @objc private func newNote(_ sender: NSMenuItem) {
+        guard let color = sender.representedObject as? String else { return }
+        AppController.shared.shelf?.newNote(color: color)
     }
 
     private static func show(_ hotkey: String, on item: NSMenuItem) {

@@ -17,9 +17,19 @@ let package = Package(
                 .swiftLanguageMode(.v6)
             ]
         ),
+        // The screenshot line, merged from the standalone Snapline app. Kept in the Swift 5
+        // language mode it was written in; Sitch talks to it only through ShelfController.
+        .target(
+            name: "SitchShelf",
+            path: "Sources/SitchShelf",
+            exclude: ["Resources"],
+            swiftSettings: [
+                .swiftLanguageMode(.v5)
+            ]
+        ),
         .executableTarget(
             name: "Sitch",
-            dependencies: ["SitchCore"],
+            dependencies: ["SitchCore", "SitchShelf"],
             path: "Sources/Sitch",
             swiftSettings: [
                 .swiftLanguageMode(.v6)

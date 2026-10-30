@@ -25,6 +25,10 @@ public struct AppSettings: Codable, Equatable, Sendable {
     /// Every capture lands on the clipboard immediately, ready to paste (on by default).
     public var afterCopy = true
     public var afterSave = false
+    /// Hang every capture on the screenshot line (merged from Snapline), when the line is on.
+    public var afterHang = true
+    /// The screenshot line along the top of the screen. Its own settings live in SitchShelf.
+    public var lineEnabled = true
     /// 0 = off; 3, 5 or 10 seconds.
     public var timerSeconds = 0
     public var watchSystemScreenshots = false
@@ -71,6 +75,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         afterShowEditor = v(.afterShowEditor, d.afterShowEditor)
         afterCopy = v(.afterCopy, d.afterCopy)
         afterSave = v(.afterSave, d.afterSave)
+        afterHang = v(.afterHang, d.afterHang)
+        lineEnabled = v(.lineEnabled, d.lineEnabled)
         timerSeconds = v(.timerSeconds, d.timerSeconds)
         watchSystemScreenshots = v(.watchSystemScreenshots, d.watchSystemScreenshots)
         lastRegion = v(.lastRegion, d.lastRegion)
