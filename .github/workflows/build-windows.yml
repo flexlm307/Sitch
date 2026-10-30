@@ -2,7 +2,7 @@ name: Build (Windows)
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'claude/**']
     paths: ['windows/**', '.github/workflows/build-windows.yml']
   pull_request:
     paths: ['windows/**', '.github/workflows/build-windows.yml']

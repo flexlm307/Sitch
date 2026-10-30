@@ -2,7 +2,7 @@ name: Build (macOS)
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'claude/**']
     paths: ['mac/**', '.github/workflows/build-mac.yml']
   pull_request:
     paths: ['mac/**', '.github/workflows/build-mac.yml']
