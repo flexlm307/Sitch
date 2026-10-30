@@ -75,7 +75,7 @@ public sealed class ClipboardWatcher : IDisposable
             var owner = Native.GetClipboardOwner();
             if (owner != IntPtr.Zero && Native.GetWindowThreadProcessId(owner, out var pid) != 0 && pid == Environment.ProcessId) return;
 
-            IDataObject data;
+            IDataObject? data;
             try { data = Clipboard.GetDataObject(); }
             catch { return; }
             if (data is null) return;
