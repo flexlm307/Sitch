@@ -9,6 +9,7 @@ public static class StartupManager
     private const string ApprovedKey = @"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
     private const string ValueName = "Sitch";
     private const string LegacyValueName = "WinSitch";
+    private const string AppPathKey = @"Software\Microsoft\Windows\CurrentVersion\App Paths\Sitch.exe";
 
     public static bool IsEnabled()
     {
@@ -40,6 +41,22 @@ public static class StartupManager
             if (wasEnabled) SetEnabled(true);
         }
         catch { /* best-effort, like settings persistence */ }
+    }
+
+    /// <summary>
+    /// Per-user App Paths entry for wherever this exe lives (Sitch is a portable single file), so
+    /// Snapline's "Edit in Sitch" can find and launch it. Rewritten each start in case it moved.
+    /// </summary>
+    public static void RegisterAppPath()
+    {
+        try
+        {
+            var exe = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exe) || !exe.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) return;
+            using var key = Registry.CurrentUser.CreateSubKey(AppPathKey);
+            if (key.GetValue(null) as string != exe) key.SetValue(null, exe);
+        }
+        catch { /* best-effort */ }
     }
 
     public static void SetEnabled(bool enabled)

@@ -72,6 +72,9 @@ final class AppController {
             case "--demo-light": Theme.apply("Light"); openDemo()
             case "--settings": showSettings()
             case "--capture": captureRegion()
+            case let edit where edit.hasPrefix("--edit="):
+                let path = String(edit.dropFirst("--edit=".count))
+                if FileManager.default.fileExists(atPath: path) { openImage(at: URL(fileURLWithPath: path), saveBack: true) }
             default:
                 if FileManager.default.fileExists(atPath: arg) { openImage(at: URL(fileURLWithPath: arg)) }
             }
@@ -214,7 +217,9 @@ final class AppController {
         return editor
     }
 
-    func openImage(at url: URL) {
+    /// `saveBack`: `--edit` from another app (Snapline's "Edit in Sitch") — Save writes into this
+    /// file, so the caller sees the marks. Only for formats Sitch encodes.
+    func openImage(at url: URL, saveBack: Bool = false) {
         guard let (image, scale) = Self.loadImage(url) else {
             let alert = NSAlert()
             alert.messageText = "Couldn't open \(url.lastPathComponent)"
@@ -222,7 +227,10 @@ final class AppController {
             alert.runModal()
             return
         }
-        openEditor(image: image, title: url.deletingPathExtension().lastPathComponent, pointScale: scale)
+        let editor = openEditor(image: image, title: url.deletingPathExtension().lastPathComponent, pointScale: scale)
+        if saveBack, ["png", "jpg", "jpeg", "tif", "tiff"].contains(url.pathExtension.lowercased()) {
+            editor.saveBackURL = url.standardizedFileURL
+        }
     }
 
     /// Decodes with EXIF orientation applied; a 144-dpi PNG (a macOS Retina screenshot)

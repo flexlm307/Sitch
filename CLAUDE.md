@@ -38,6 +38,10 @@ Versioning & release and Guardrails cover both.
 - `--demo` / `--demo-crop` / `--demo-light` — open the editor on a synthetic dashboard with
   annotations pre-placed (these generate the README screenshots).
 - `--settings`, `--capture`, or a bare file path (opens that image).
+- `--edit=<path>` — opens the image with **save-back**: Save/Ctrl+S overwrites that file (png/jpg/tiff
+  only; other formats fall back to Save As). Snapline's "Edit in Sitch" uses it, over the pipe
+  (`EDIT <path>`) when Sitch is running. Sitch writes an HKCU `App Paths\Sitch.exe` entry each start
+  so Snapline can find the portable exe.
 - `--shot-region=<path>` — headless render-and-exit; skips the single-instance mutex.
 - A second launch **forwards its args to the already-running tray instance** over a named pipe, so
   `--demo` opens nothing if an instance is running. Quit the tray app first to test a fresh launch.

@@ -15,8 +15,9 @@ enum SingleInstance {
         guard let other = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
             .first(where: { $0.processIdentifier != me }) else { return false }
         // Relative paths mean nothing to the other process.
-        let resolved = args.map { arg in
-            arg.hasPrefix("--") ? arg : URL(fileURLWithPath: arg).standardizedFileURL.path
+        let resolved = args.map { arg -> String in
+            if let path = arg.value(of: "--edit=") { return "--edit=" + URL(fileURLWithPath: path).standardizedFileURL.path }
+            return arg.hasPrefix("--") ? arg : URL(fileURLWithPath: arg).standardizedFileURL.path
         }
         DistributedNotificationCenter.default().postNotificationName(
             name, object: nil, userInfo: ["args": resolved, "pid": Int(other.processIdentifier)],

@@ -41,7 +41,7 @@ enum SitchMain {
     }
 }
 
-private extension String {
+extension String {
     func value(of prefix: String) -> String? { hasPrefix(prefix) ? String(dropFirst(prefix.count)) : nil }
 }
 

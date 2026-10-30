@@ -40,6 +40,10 @@ extension EditorWindowController: NSMenuItemValidation {
 
     func showSaveMenu() {
         let menu = NSMenu()
+        if let back = saveBackURL {
+            menu.addItem(ActionMenuItem(title: "Save to \(back.lastPathComponent)") { [weak self] in self?.save() })
+            menu.addItem(.separator())
+        }
         for fmt in Exporters.formats {
             let item = ActionMenuItem(title: "." + fmt) { [weak self] in
                 guard let self else { return }
@@ -53,6 +57,27 @@ extension EditorWindowController: NSMenuItemValidation {
         menu.addItem(.separator())
         menu.addItem(ActionMenuItem(title: "Save As…") { [weak self] in self?.saveAs() })
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: saveButton.bounds.height + 4), in: saveButton)
+    }
+
+    /// ⌘S: back into the source file when opened with `--edit`, else Save As.
+    @discardableResult
+    func save() -> Bool {
+        guard let url = saveBackURL else { return saveAs() }
+        commitTextEdit()
+        guard let img = renderFinal() else { return false }
+        do {
+            try Exporters.save(img, to: url, pointScale: doc.pointScale)
+            doc.dirty = false
+            Toast.show("Saved \(url.lastPathComponent)")
+            return true
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Save failed."
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .warning
+            alert.runModal()
+            return false
+        }
     }
 
     /// Save panel → export. True when the document was written.
@@ -167,7 +192,7 @@ extension EditorWindowController: NSMenuItemValidation {
     /// ⌘C: text views / fields earlier in the responder chain handle their own copy first.
     @objc func copy(_ sender: Any?) { copyImage() }
 
-    @objc func saveImage(_ sender: Any?) { saveAs() }
+    @objc func saveImage(_ sender: Any?) { save() }
 
     @objc func deleteSelection(_ sender: Any?) {
         guard let sel = canvas.selected else { return }

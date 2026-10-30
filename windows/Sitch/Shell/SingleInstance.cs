@@ -48,6 +48,8 @@ public sealed class SingleInstance : IDisposable
             {
                 if (a == "--capture") { writer.WriteLine("CAPTURE"); sent = true; }
                 else if (a == "--settings") { writer.WriteLine("SETTINGS"); sent = true; }
+                else if (a.StartsWith("--edit=", StringComparison.Ordinal) && File.Exists(a[7..]))
+                { writer.WriteLine("EDIT " + Path.GetFullPath(a[7..])); sent = true; }
                 else if (File.Exists(a)) { writer.WriteLine("OPEN " + Path.GetFullPath(a)); sent = true; }
             }
             if (!sent) writer.WriteLine("FOCUS");

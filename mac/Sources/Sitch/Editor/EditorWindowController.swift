@@ -28,6 +28,8 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
     var bold = true
     var italic = false
     var saveFormat = "png"
+    /// Set for `--edit` (e.g. Snapline's "Edit in Sitch"): Save writes back into this file.
+    var saveBackURL: URL?
 
     /// Crop aspect constraint (0 = free); read by the canvas's handle math.
     var cropAspectRatio: CGFloat = 0
@@ -324,11 +326,11 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
         window?.makeKeyAndOrderFront(nil)
         let alert = NSAlert()
         alert.messageText = "“\(docName)” has unsaved changes. Save before closing?"
-        alert.addButton(withTitle: "Save…")
+        alert.addButton(withTitle: saveBackURL == nil ? "Save…" : "Save")
         alert.addButton(withTitle: "Don’t Save")
         alert.addButton(withTitle: "Cancel")
         switch alert.runModal() {
-        case .alertFirstButtonReturn: return saveAs()
+        case .alertFirstButtonReturn: return save()
         case .alertSecondButtonReturn: return true
         default: return false
         }

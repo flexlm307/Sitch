@@ -15,8 +15,8 @@ since v0.2.0. `SitchCore` (library) holds the model + renderer and is covered by
 ## Build / run / test (from `mac/`)
 - `swift build` / `swift run` — bare binary, no bundle (no icon, no Info.plist, no single-instance).
 - `swift test` — SitchCore unit tests (render origin, crop, undo, rotate/flip, effects, settings…).
-- CLI flags as on Windows: `--demo`, `--demo-crop`, `--demo-light`, `--settings`, `--capture`, a
-  file path, and headless `--shot-region=<png>`; plus `--render-demo=<png>` (flattened demo
+- CLI flags as on Windows: `--demo`, `--demo-crop`, `--demo-light`, `--settings`, `--capture`,
+  `--edit=<path>` (save-back, used by Snapline's "Edit in Sitch"), a file path, and headless `--shot-region=<png>`; plus `--render-demo=<png>` (flattened demo
   document — compare with `docs/assets/editor-dark.png` for render parity). A second launch of
   the BUNDLED app forwards its args to the running one (distributed notification), so test a
   fresh launch only after quitting it.

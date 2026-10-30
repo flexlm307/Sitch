@@ -61,6 +61,7 @@ public partial class App : Application
 
         Settings = SettingsStore.Load();
         StartupManager.MigrateLegacy();
+        StartupManager.RegisterAppPath();
         ThemeManager.Apply(Settings.Theme);
 
         _capture = new CaptureController();
@@ -99,6 +100,8 @@ public partial class App : Application
         {
             if (message.StartsWith("OPEN ", StringComparison.Ordinal))
                 OpenImageFile(message[5..]);
+            else if (message.StartsWith("EDIT ", StringComparison.Ordinal))
+                OpenImageFile(message[5..], saveBack: true);
             else if (message == "CAPTURE")
                 CaptureRegion();
             else if (message == "SETTINGS")
@@ -119,6 +122,9 @@ public partial class App : Application
                 case "--demo-light": DemoMode.OpenEditorDemo(lightTheme: true); break;
                 case "--settings": ShowSettings(); break;
                 case "--capture": CaptureRegion(); break;
+                case var edit when edit.StartsWith("--edit=", StringComparison.Ordinal):
+                    if (File.Exists(edit[7..])) OpenImageFile(edit[7..], saveBack: true);
+                    break;
                 default:
                     if (File.Exists(arg)) OpenImageFile(arg);
                     break;
@@ -282,14 +288,18 @@ public partial class App : Application
 
     // ---- Windows -------------------------------------------------------------
 
-    public void OpenEditor(BitmapSource bitmap, string title, PixelRect? sourceRect = null)
+    public void OpenEditor(BitmapSource bitmap, string title, PixelRect? sourceRect = null, string? saveBackPath = null)
     {
-        var win = new EditorWindow(bitmap, title, sourceRect);
+        var win = new EditorWindow(bitmap, title, sourceRect, saveBackPath);
         win.Show();
         win.Activate();
     }
 
-    public void OpenImageFile(string path)
+    /// <summary>
+    /// <paramref name="saveBack"/>: <c>--edit</c> from another app (Snapline's "Edit in Sitch") —
+    /// Save writes into this file, so the caller sees the marks. Only for formats Sitch encodes.
+    /// </summary>
+    public void OpenImageFile(string path, bool saveBack = false)
     {
         try
         {
@@ -299,7 +309,10 @@ public partial class App : Application
             bmp.UriSource = new Uri(Path.GetFullPath(path));
             bmp.EndInit();
             bmp.Freeze();
-            OpenEditor(bmp, Path.GetFileNameWithoutExtension(path));
+            var full = Path.GetFullPath(path);
+            var ext = Path.GetExtension(full).TrimStart('.').ToLowerInvariant();
+            bool canWrite = ext is "png" or "jpg" or "jpeg" or "tif" or "tiff";
+            OpenEditor(bmp, Path.GetFileNameWithoutExtension(path), saveBackPath: saveBack && canWrite ? full : null);
         }
         catch (Exception ex)
         {
@@ -333,7 +346,7 @@ public partial class App : Application
     public void UpdateScreenshotWatcher()
     {
         _watcher?.Dispose();
-        _watcher = Settings.WatchSystemScreenshots ? new ScreenshotWatcher(OpenImageFile) : null;
+        _watcher = Settings.WatchSystemScreenshots ? new ScreenshotWatcher(path => OpenImageFile(path)) : null;
     }
 
     public void QuitRequested()

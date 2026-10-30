@@ -21,6 +21,8 @@ public partial class EditorWindow : Window
     {
         public required Document Doc;
         public required string Name;
+        /// <summary>Set for <c>--edit</c> (e.g. Snapline's "Edit in Sitch"): Save writes back to this file.</summary>
+        public string? SaveBackPath;
         public double SavedZoom = 1.0;
         public bool ZoomInitialized;
     }
@@ -69,7 +71,7 @@ public partial class EditorWindow : Window
     private readonly List<string> _tempFiles = new();
     private bool _closeConfirmed;
 
-    public EditorWindow(BitmapSource bitmap, string title, PixelRect? sourceRect = null)
+    public EditorWindow(BitmapSource bitmap, string title, PixelRect? sourceRect = null, string? saveBackPath = null)
     {
         InitializeComponent();
 
@@ -119,7 +121,7 @@ public partial class EditorWindow : Window
         PreviewKeyDown += OnPreviewKey;
 
         // The first capture becomes the first (and initially only) tab.
-        AddDocument(bitmap, title);
+        AddDocument(bitmap, title, saveBackPath);
     }
 
     // ============================ tabs ==========================================
@@ -132,12 +134,13 @@ public partial class EditorWindow : Window
         Activate();
     }
 
-    private void AddDocument(BitmapSource bitmap, string name)
+    private void AddDocument(BitmapSource bitmap, string name, string? saveBackPath = null)
     {
         var tab = new DocTab
         {
             Doc = new Document(bitmap),
             Name = string.IsNullOrWhiteSpace(name) ? "Untitled" : name,
+            SaveBackPath = saveBackPath,
         };
         _tabs.Add(tab);
         SwitchToTab(tab);
@@ -1243,6 +1246,11 @@ public partial class EditorWindow : Window
     private void ShowSaveMenu()
     {
         var menu = new ContextMenu();
+        if (_active.SaveBackPath is { } back)
+        {
+            menu.Items.Add(MenuItemFor($"Save to {IOPath.GetFileName(back)}", Save));
+            menu.Items.Add(new Separator());
+        }
         foreach (var fmt in Exporters.Formats)
         {
             var mi = new MenuItem { Header = "." + fmt, IsCheckable = true, IsChecked = fmt == _saveFormat };
@@ -1254,6 +1262,24 @@ public partial class EditorWindow : Window
         menu.Items.Add(MenuItemFor("Save As…", SaveAs));
         menu.PlacementTarget = BtnSave;
         menu.IsOpen = true;
+    }
+
+    /// <summary>Ctrl+S: back into the source file when opened with <c>--edit</c>, else Save As.</summary>
+    private void Save()
+    {
+        if (_active.SaveBackPath is not { } path) { SaveAs(); return; }
+        CommitTextEdit();
+        try
+        {
+            Exporters.Save(RenderFinal(), path);
+            _doc.Dirty = false;
+            NotifyPopup.Show($"Saved {IOPath.GetFileName(path)}");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, $"Save failed.\n{ex.Message}", "Sitch",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void SaveAs()
@@ -1419,7 +1445,7 @@ public partial class EditorWindow : Window
                 e.Handled = true;
                 break;
             case Key.S when ctrl:
-                SaveAs();
+                Save();
                 e.Handled = true;
                 break;
             case Key.W when ctrl:
@@ -1455,7 +1481,7 @@ public partial class EditorWindow : Window
         switch (result)
         {
             case MessageBoxResult.Yes:
-                SaveAs();
+                Save();
                 return !_doc.Dirty;
             case MessageBoxResult.No:
                 return true;
