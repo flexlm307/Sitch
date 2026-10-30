@@ -4,15 +4,15 @@ import Foundation
 /// the English text itself. The language follows the system, or the one
 /// chosen in Settings, and anything missing falls back to English.
 ///
-/// The line keeps its English and Arabic text from Snapline; the rest of Sitch is English
-/// only. The tables are copied into the app by `scripts/build-app.sh` (a SwiftPM resource
+/// The line keeps its English and Arabic text from Snapline and adds Chinese; "auto" follows Sitch's
+/// own language (ShelfController.hostLanguage), then the system. The tables are copied into the app by `scripts/build-app.sh` (a SwiftPM resource
 /// bundle would sit at the .app root and break the signature). The bare binary shows English.
 func L(_ english: String) -> String {
     Localization.text(english)
 }
 
 enum Localization {
-    /// "en" or "ar".
+    /// "en", "zh" or "ar".
     nonisolated(unsafe) static var language: String = resolve()
     static var isRTL: Bool { language == "ar" }
 
@@ -25,9 +25,11 @@ enum Localization {
 
     private static func resolve() -> String {
         let chosen = Settings.current.language
-        if chosen == "en" || chosen == "ar" { return chosen }
+        if ["en", "zh", "ar"].contains(chosen) { return chosen }
+        if let host = ShelfController.hostLanguage { return host }
         for preferred in Locale.preferredLanguages {
             if preferred.hasPrefix("ar") { return "ar" }
+            if preferred.hasPrefix("zh") { return "zh" }
             if preferred.hasPrefix("en") { return "en" }
         }
         return "en"

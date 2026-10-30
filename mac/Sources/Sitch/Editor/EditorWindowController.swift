@@ -91,13 +91,14 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
     var sizeReadout: NSTextField!
     var saveButton: ChromeButton!
     var shareButton: ChromeButton!
+    var markdownButton: ChromeButton!
 
     static let minSize = NSSize(width: 760, height: 420)
     static let topBarHeight: CGFloat = 44, bottomBarHeight: CGFloat = 40, railWidth: CGFloat = 46
 
     init(image: CGImage, title: String, pointScale: CGFloat) {
         doc = Document(base: image, pointScale: pointScale)
-        docName = title.trimmingCharacters(in: .whitespaces).isEmpty ? "Untitled" : title
+        docName = title.trimmingCharacters(in: .whitespaces).isEmpty ? Loc.t("Untitled") : title
         super.init(window: nil)
         build()
     }
@@ -325,10 +326,10 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
         guard needsSavePrompt else { return true }
         window?.makeKeyAndOrderFront(nil)
         let alert = NSAlert()
-        alert.messageText = "“\(docName)” has unsaved changes. Save before closing?"
-        alert.addButton(withTitle: saveBackURL == nil ? "Save…" : "Save")
-        alert.addButton(withTitle: "Don’t Save")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = Loc.f("“{0}” has unsaved changes. Save before closing?", docName)
+        alert.addButton(withTitle: Loc.t(saveBackURL == nil ? "Save…" : "Save"))
+        alert.addButton(withTitle: Loc.t("Don’t Save"))
+        alert.addButton(withTitle: Loc.t("Cancel"))
         switch alert.runModal() {
         case .alertFirstButtonReturn: return save()
         case .alertSecondButtonReturn: return true
@@ -346,6 +347,11 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate {
         if closeConfirmed { return true }
         if confirmClose() { closeConfirmed = true; return true }
         return false
+    }
+
+    // MinerU may have been set up in Settings meanwhile.
+    func windowDidBecomeKey(_ notification: Notification) {
+        markdownButton?.isHidden = !MinerU.configured
     }
 
     func windowWillClose(_ notification: Notification) {

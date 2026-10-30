@@ -223,6 +223,32 @@ invariant above holds on the Mac too. Same module names; differences that matter
   screenshot settings when Sitch quits.
 - **Permission** — Screen Recording (TCC) gates every capture; the grant is tied to the code
   signature, so ad-hoc rebuilds lose it (sign dev builds with the Developer ID).
+- **The Windows feature pass, ported** — same behaviour, Mac means:
+  - *Language* (`Shell/Loc.swift`, table in `LocTable.swift` generated from `Loc.cs` plus Mac
+    wording): applied centrally in `ChromeButton`, `makeLabel`, `ActionMenuItem`, `Toast`,
+    `MainMenu`, the Settings helpers; read once at launch. The line has `zh.lproj/Line.strings` and
+    follows Sitch through `ShelfController.hostLanguage`.
+  - *Element snapping* (`Capture/ElementSnapper`): AX hit-test inside the hovered window's own app
+    (`AXUIElementCreateApplication(pid)`, never system-wide, which would hit the overlay), then the
+    parent chain up to `AXWindow`, clipped and de-duplicated as on Windows. Needs the Accessibility
+    grant; without it, plain window snapping (Settings offers the prompt). Wheel: one step per
+    gesture, natural scrolling un-flipped.
+  - *Magnifier*: samples the frozen display image in pixels and reads the colour in the frame's
+    own colour space (the values the display shows).
+  - *Pins* (`Shell/Pins`): non-activating floating `NSPanel` at the capture's point size; ⌘-scroll
+    for opacity (Ctrl on Windows).
+  - *Scrolling capture / recording*: one `Capture/RegionStream` (an `SCStream` over the rect with
+    Sitch's own app excluded, so `RegionChrome` and toasts never show). The stitcher is pure Swift
+    in `SitchCore/ScrollStitcher` (unit-tested). MP4 is H.264 from `AVAssetWriter` with the frames'
+    own timestamps (a still screen sends none, the last frame holds) — no FFmpeg; GIF records a
+    high-bitrate temp MP4, then FFmpeg `fps=12` + palettegen/paletteuse.
+  - *External tools* (`Export/ExternalTools`): a Finder-launched app has launchd's bare PATH, so
+    `~/.local/bin`, Homebrew and MacPorts are searched first. MediaMini prefers its folder's
+    `.venv/bin/python`. MinerU defaults to `~/.local/share/mineru/current` and takes the launcher's
+    model setup (`../mineru.json`, `../models/huggingface`); the server runs through a wrapper whose
+    thread exits when `getppid()` changes — the stand-in for the Windows job object.
+  - *OCR*: Vision with zh-Hans/zh-Hant/en first, boxes grouped into rows like the RapidOCR worker;
+    RapidOCR is the same stdin/stdout Python worker (`LineWorker`).
 
 ## License guardrail
 

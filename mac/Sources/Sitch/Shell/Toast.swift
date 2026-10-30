@@ -34,7 +34,7 @@ enum Toast {
             stack.addArrangedSubview(iv)
         }
 
-        let label = NSTextField(wrappingLabelWithString: text)
+        let label = NSTextField(wrappingLabelWithString: Loc.t(text))
         label.font = .systemFont(ofSize: 13)
         label.textColor = .white
         label.preferredMaxLayoutWidth = 260

@@ -16,6 +16,17 @@ public final class ShelfController: NSObject, NSMenuDelegate {
     public var onNewCapture: @MainActor () -> Void = {}
     public var onSitchSettings: @MainActor () -> Void = {}
     public var onQuit: @MainActor () -> Void = {}
+    /// A photo's "Pin to screen" (Sitch's pins float it above every window).
+    public var onPin: @MainActor (URL) -> Void = { _ in }
+    /// A photo's "Restore as Markdown"; shown only while `canRestoreMarkdown` says MinerU is there.
+    public var onRestoreMarkdown: @MainActor (URL) -> Void = { _ in }
+    public var canRestoreMarkdown: @MainActor () -> Bool = { false }
+    /// "Copy text": Sitch's OCR (its engine setting); nil = the line's own Vision reader.
+    public var readText: (@MainActor (URL) async -> String?)?
+    /// "zh" makes the line Chinese when its own language setting is "auto" (Sitch's Language).
+    nonisolated(unsafe) public static var hostLanguage: String? {
+        didSet { Localization.refresh() }
+    }
 
     private let line = Line()
     private var panel: LinePanel!
@@ -94,6 +105,13 @@ public final class ShelfController: NSObject, NSMenuDelegate {
 
         Markup.shared.onSaved = { [weak self] url in self?.line.reloadThumbnail(for: url) }
         line.onEdit = { [weak self] url in self?.onEdit(url) }
+        line.onPin = { [weak self] url in self?.onPin(url) }
+        line.onRestoreMarkdown = { [weak self] url in self?.onRestoreMarkdown(url) }
+        line.canRestoreMarkdown = { [weak self] in self?.canRestoreMarkdown() ?? false }
+        line.readText = { [weak self] url in
+            if let read = self?.readText { return await read(url) }
+            return await Ocr.read(url)
+        }
         line.onFall = { [weak self] item in self?.fall(item) }
 
         line.$items

@@ -83,21 +83,26 @@ enum Exporters {
     /// Quick-capture save: default folder (or ~/Pictures/Sitch), timestamped name, never overwrites.
     @MainActor static func quickSave(_ image: CGImage, pointScale: CGFloat) throws -> URL {
         let settings = AppController.shared.settings
+        let fmt = formats.contains(settings.defaultFormat) ? settings.defaultFormat : "png"
+        let url = uniqueURL(in: saveFolder(), baseName: "Sitch \(timestamp(Date()))", ext: fmt)
+        try save(image, to: url, pointScale: pointScale)
+        MediaMini.compressLater(url)
+        return url
+    }
+
+    /// Settings' save folder when it exists, else ~/Pictures/Sitch (created). Recordings and MinerU
+    /// results land here too.
+    @MainActor static func saveFolder() -> URL {
+        let settings = AppController.shared.settings
         let fm = FileManager.default
         let configured = (settings.defaultSaveFolder as NSString).expandingTildeInPath
         var isDir: ObjCBool = false
-        let folder: URL
         if !settings.defaultSaveFolder.isEmpty, fm.fileExists(atPath: configured, isDirectory: &isDir), isDir.boolValue {
-            folder = URL(fileURLWithPath: configured, isDirectory: true)
-        } else {
-            folder = fm.urls(for: .picturesDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent("Sitch", isDirectory: true)
-            try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+            return URL(fileURLWithPath: configured, isDirectory: true)
         }
-        let fmt = formats.contains(settings.defaultFormat) ? settings.defaultFormat : "png"
-        let url = uniqueURL(in: folder, baseName: "Sitch \(timestamp(Date()))", ext: fmt)
-        try save(image, to: url, pointScale: pointScale)
-        return url
+        let folder = fm.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("Sitch", isDirectory: true)
+        try? fm.createDirectory(at: folder, withIntermediateDirectories: true)
+        return folder
     }
 
     /// "yyyy-MM-dd at HH.mm.ss" — the same name pattern macOS and the Windows build use.

@@ -66,7 +66,7 @@ extension EditorWindowController: NSTextViewDelegate, NSTextFieldDelegate {
         guard let window, panel.runModal() == .OK, let url = panel.url else { return }
         guard let img = Self.loadImage(url) else {
             let alert = NSAlert()
-            alert.messageText = "Couldn't insert image."
+            alert.messageText = Loc.t("Couldn't insert image.")
             alert.informativeText = url.lastPathComponent
             alert.beginSheetModal(for: window)
             return

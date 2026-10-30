@@ -18,11 +18,11 @@ enum LoginItemOffer {
     static func ask() {
         NSApp.activate()
         let alert = NSAlert()
-        alert.messageText = "Open Sitch when you log in?"
-        alert.informativeText = "Sitch lives in your menu bar, so your capture shortcut works as soon as "
-            + "your Mac starts. You can change this anytime in Settings."
-        alert.addButton(withTitle: "Open at Login")
-        alert.addButton(withTitle: "Not Now")
+        alert.messageText = Loc.t("Open Sitch when you log in?")
+        alert.informativeText = Loc.t("Sitch lives in your menu bar, so your capture shortcut works as soon as "
+            + "your Mac starts. You can change this anytime in Settings.")
+        alert.addButton(withTitle: Loc.t("Open at Login"))
+        alert.addButton(withTitle: Loc.t("Not Now"))
         record(accepted: alert.runModal() == .alertFirstButtonReturn)
     }
 
@@ -34,7 +34,7 @@ enum LoginItemOffer {
                 try LoginItem.setEnabled(true)
                 app.settings.openAtLogin = true
             } catch {
-                Toast.show("Couldn't add Sitch to your login items.\n\(error.localizedDescription)")
+                Toast.show(Loc.t("Couldn't add Sitch to your login items.") + "\n\(error.localizedDescription)")
             }
         }
         app.saveSettings()

@@ -33,7 +33,12 @@ final class ChromeButton: NSView {
 
     init(_ style: Style, _ content: Content, toolTip: String? = nil, onClick: (() -> Void)? = nil) {
         self.style = style
-        self.content = content
+        // UI words go through Loc here, once for every bar and rail (unknown keys pass through).
+        self.content = switch content {
+        case .text(let s, let f): .text(Loc.t(s), f)
+        case .glyphText(let g, let s, let f): .glyphText(g, Loc.t(s), f)
+        default: content
+        }
         self.onClick = onClick
         switch style {
         case .icon: padding = NSEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
@@ -42,7 +47,7 @@ final class ChromeButton: NSView {
         case .primary, .ghost: padding = NSEdgeInsets(top: 5, left: 14, bottom: 5, right: 14)
         }
         super.init(frame: .zero)
-        self.toolTip = toolTip
+        self.toolTip = toolTip.map(Loc.t)
         setContentHuggingPriority(.required, for: .horizontal)
         setContentHuggingPriority(.required, for: .vertical)
         setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -222,7 +227,7 @@ final class DividerView: NSView {
 @MainActor
 func makeLabel(_ text: String, size: CGFloat = 13, weight: NSFont.Weight = .regular,
                color: NSColor = Theme.text) -> NSTextField {
-    let l = NSTextField(labelWithString: text)
+    let l = NSTextField(labelWithString: Loc.t(text))
     l.font = .systemFont(ofSize: size, weight: weight)
     l.textColor = color
     l.lineBreakMode = .byClipping

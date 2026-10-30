@@ -11,6 +11,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private let recaptureItem = NSMenuItem(title: "Recapture Last Region", action: #selector(AppDelegate.recaptureLast(_:)), keyEquivalent: "")
     private let quickCopyItem = NSMenuItem(title: "Quick Capture → Clipboard", action: #selector(AppDelegate.quickCaptureToClipboard(_:)), keyEquivalent: "")
     private let fullScreen = NSMenuItem(title: "Capture Full Screen", action: nil, keyEquivalent: "")
+    private let scrollItem = NSMenuItem(title: "Scrolling Capture", action: #selector(scrollCapture), keyEquivalent: "")
+    private let recordItem = NSMenuItem(title: "Record GIF", action: #selector(record), keyEquivalent: "")
+    private let recordOtherItem = NSMenuItem(title: "Record Video (MP4)", action: #selector(recordOther), keyEquivalent: "")
+    private let pinItem = NSMenuItem(title: "Pin Clipboard Image", action: #selector(pinClipboard), keyEquivalent: "")
+    private let unpinAllItem = NSMenuItem(title: "Close All Pins", action: #selector(closeAllPins), keyEquivalent: "")
     // The screenshot line (merged from Snapline): shown only while it runs.
     private let lineItem = NSMenuItem(title: "Show Screenshot Line", action: #selector(toggleLine), keyEquivalent: "")
     private let noteItem = NSMenuItem(title: "New Note", action: nil, keyEquivalent: "")
@@ -20,7 +25,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     override init() {
         super.init()
         item.button?.image = Self.glyph
-        item.button?.toolTip = "Sitch — Capture. Annotate. Share."
+        item.button?.toolTip = Loc.t("Sitch — Capture. Annotate. Share.")
 
         let menu = NSMenu()
         menu.addItem(captureItem)
@@ -28,12 +33,17 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         fullScreen.submenu = NSMenu()
         fullScreen.submenu?.delegate = self
         menu.addItem(fullScreen)
+        menu.addItem(scrollItem)
+        menu.addItem(recordItem)
+        menu.addItem(recordOtherItem)
         menu.addItem(recaptureItem)
         menu.addItem(.separator())
         menu.addItem(quickCopyItem)
         menu.addItem(withTitle: "Quick Capture → File", action: #selector(AppDelegate.quickCaptureToFile(_:)), keyEquivalent: "")
         menu.addItem(.separator())
         menu.addItem(withTitle: "Open Image…", action: #selector(AppDelegate.openImage(_:)), keyEquivalent: "")
+        menu.addItem(pinItem)
+        menu.addItem(unpinAllItem)
         menu.addItem(.separator())
         noteItem.submenu = NSMenu()
         for entry in [lineItem, noteItem, lineSettingsItem, lineSeparator] { menu.addItem(entry) }
@@ -44,8 +54,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         for entry in menu.items where entry.action != nil && entry.action != #selector(NSApplication.terminate(_:)) {
             entry.target = NSApp.delegate
         }
-        lineItem.target = self
-        lineSettingsItem.target = self
+        for entry in [lineItem, lineSettingsItem, scrollItem, recordItem, recordOtherItem, pinItem, unpinAllItem] { entry.target = self }
+        for entry in menu.items { entry.title = Loc.t(entry.title) }
         menu.delegate = self
         item.menu = menu
         refreshShortcuts()
@@ -56,29 +66,39 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         Self.show(AppController.shared.settings.captureHotkey, on: captureItem)
         Self.show(AppController.shared.settings.recaptureHotkey, on: recaptureItem)
         Self.show(AppController.shared.settings.quickCopyHotkey, on: quickCopyItem)
+        Self.show(AppController.shared.settings.scrollHotkey, on: scrollItem)
+        Self.show(AppController.shared.settings.recordHotkey, on: recordItem)
+        Self.show(AppController.shared.settings.pinHotkey, on: pinItem)
     }
 
     // Displays come and go — rebuild the submenu each time it opens. The main menu refreshes
     // the screenshot line's items.
     func menuNeedsUpdate(_ menu: NSMenu) {
-        if menu === item.menu { updateLineItems(); return }
+        if menu === item.menu {
+            updateLineItems()
+            let mp4 = AppController.shared.settings.recordFormat == "mp4"
+            recordItem.title = Loc.t(mp4 ? "Record Video (MP4)" : "Record GIF")
+            recordOtherItem.title = Loc.t(mp4 ? "Record GIF" : "Record Video (MP4)")
+            unpinAllItem.isHidden = Pins.count == 0
+            return
+        }
         menu.removeAllItems()
         for (i, d) in CaptureController.displays().enumerated() {
             let entry = NSMenuItem(
-                title: "Display \(i + 1) — \(d.name) (\(d.pixelWidth)×\(d.pixelHeight))\(d.isMain ? " — main" : "")",
+                title: Loc.f("Display {0} — {1} ({2}×{3})", i + 1, d.name, d.pixelWidth, d.pixelHeight) + (d.isMain ? Loc.t(" — main") : ""),
                 action: #selector(AppDelegate.captureFullScreen(_:)), keyEquivalent: "")
             entry.target = NSApp.delegate
             entry.representedObject = d.id
             menu.addItem(entry)
         }
-        if menu.items.isEmpty { menu.addItem(withTitle: "No displays", action: nil, keyEquivalent: "") }
+        if menu.items.isEmpty { menu.addItem(withTitle: Loc.t("No displays"), action: nil, keyEquivalent: "") }
     }
 
     private func updateLineItems() {
         let shelf = AppController.shared.shelf
         for entry in [lineItem, noteItem, lineSettingsItem, lineSeparator] { entry.isHidden = shelf == nil }
         guard let shelf else { return }
-        lineItem.title = shelf.isRevealed ? "Hide Screenshot Line" : "Show Screenshot Line"
+        lineItem.title = Loc.t(shelf.isRevealed ? "Hide Screenshot Line" : "Show Screenshot Line")
         lineItem.keyEquivalent = "t"
         lineItem.keyEquivalentModifierMask = [.control, .option]
         noteItem.submenu?.removeAllItems()
@@ -89,6 +109,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             noteItem.submenu?.addItem(entry)
         }
     }
+
+    @objc private func scrollCapture() { AppController.shared.scrollCapture() }
+    @objc private func record() { AppController.shared.record() }
+    @objc private func recordOther() {
+        AppController.shared.record(format: AppController.shared.settings.recordFormat == "mp4" ? "gif" : "mp4")
+    }
+    @objc private func pinClipboard() { Pins.pinClipboard() }
+    @objc private func closeAllPins() { Pins.closeAll() }
 
     @objc private func toggleLine() { AppController.shared.shelf?.toggleLine() }
     @objc private func showLineSettings() { AppController.shared.shelf?.showSettings() }

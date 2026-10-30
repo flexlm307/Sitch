@@ -34,11 +34,11 @@ enum ScreenRecordingPermission {
     /// Also used when ScreenCaptureKit refuses mid-session (grant revoked, user declined).
     static func showDeniedAlert() {
         let alert = NSAlert()
-        alert.messageText = "Sitch needs Screen Recording permission"
-        alert.informativeText = "Turn on Sitch in System Settings → Privacy & Security → "
-            + "Screen & System Audio Recording, then relaunch Sitch."
-        alert.addButton(withTitle: "Open System Settings")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = Loc.t("Sitch needs Screen Recording permission")
+        alert.informativeText = Loc.t("Turn on Sitch in System Settings → Privacy & Security → "
+            + "Screen & System Audio Recording, then relaunch Sitch.")
+        alert.addButton(withTitle: Loc.t("Open System Settings"))
+        alert.addButton(withTitle: Loc.t("Cancel"))
         NSApp.activate()
         if alert.runModal() == .alertFirstButtonReturn { openSystemSettings() }
     }

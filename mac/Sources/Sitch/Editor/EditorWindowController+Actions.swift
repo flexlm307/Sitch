@@ -16,7 +16,27 @@ extension EditorWindowController: NSMenuItemValidation {
     func copyImage() {
         commitTextEdit()
         guard let img = renderFinal() else { return }
-        Toast.show(ClipboardHelper.copy(img, pointScale: doc.pointScale) ? "Copied to clipboard." : "Clipboard is busy — try again.")
+        Toast.show(Loc.t(ClipboardHelper.copy(img, pointScale: doc.pointScale) ? "Copied to clipboard." : "Clipboard is busy — try again."))
+    }
+
+    /// The tab as it looks now (marks flattened), floating on top of everything.
+    @objc func pinToScreen(_ sender: Any?) {
+        commitTextEdit()
+        guard let img = renderFinal() else { return }
+        Pins.pin(img, pointScale: doc.pointScale)
+    }
+
+    @objc func restoreMarkdown(_ sender: Any?) {
+        commitTextEdit()
+        guard let img = renderFinal() else { return }
+        MinerU.restore(img, pointScale: doc.pointScale)
+    }
+
+    /// OCR over what the tab shows now (blur/pixelate redactions included).
+    @objc func extractText(_ sender: Any?) {
+        commitTextEdit()
+        guard let img = renderFinal() else { return }
+        OcrWindow.extract(from: img, near: window)
     }
 
     func writeTempPNG() -> URL? {
@@ -42,7 +62,7 @@ extension EditorWindowController: NSMenuItemValidation {
     func showSaveMenu() {
         let menu = NSMenu()
         if let back = saveBackURL {
-            menu.addItem(ActionMenuItem(title: "Save to \(back.lastPathComponent)") { [weak self] in self?.save() })
+            menu.addItem(ActionMenuItem(title: Loc.f("Save to {0}", back.lastPathComponent)) { [weak self] in self?.save() })
             menu.addItem(.separator())
         }
         for fmt in Exporters.formats {
@@ -70,11 +90,12 @@ extension EditorWindowController: NSMenuItemValidation {
             try Exporters.save(img, to: url, pointScale: doc.pointScale)
             doc.dirty = false
             AppController.shared.shelf?.fileSaved(url)
-            Toast.show("Saved \(url.lastPathComponent)")
+            Toast.show(Loc.f("Saved {0}", url.lastPathComponent))
+            MediaMini.compressLater(url) { AppController.shared.shelf?.fileSaved(url) }
             return true
         } catch {
             let alert = NSAlert()
-            alert.messageText = "Save failed."
+            alert.messageText = Loc.t("Save failed.")
             alert.informativeText = error.localizedDescription
             alert.alertStyle = .warning
             alert.runModal()
@@ -99,11 +120,12 @@ extension EditorWindowController: NSMenuItemValidation {
         do {
             try Exporters.save(img, to: url, pointScale: doc.pointScale)
             doc.dirty = false
-            Toast.show("Saved \(url.lastPathComponent)")
+            Toast.show(Loc.f("Saved {0}", url.lastPathComponent))
+            MediaMini.compressLater(url)
             return true
         } catch {
             let alert = NSAlert()
-            alert.messageText = "Save failed."
+            alert.messageText = Loc.t("Save failed.")
             alert.informativeText = error.localizedDescription
             alert.alertStyle = .warning
             alert.runModal()
@@ -126,9 +148,9 @@ extension EditorWindowController: NSMenuItemValidation {
         if canvas.selected != nil { deleteSelection(nil); return }
         guard !doc.annotations.isEmpty, let window else { return }
         let alert = NSAlert()
-        alert.messageText = "Remove all annotations?"
-        alert.addButton(withTitle: "Remove All")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = Loc.t("Remove all annotations?")
+        alert.addButton(withTitle: Loc.t("Remove All"))
+        alert.addButton(withTitle: Loc.t("Cancel"))
         alert.beginSheetModal(for: window) { [weak self] response in
             guard let self, response == .alertFirstButtonReturn else { return }
             doc.pushUndo()
@@ -228,6 +250,7 @@ extension EditorWindowController: NSMenuItemValidation {
         case #selector(undoEdit(_:)): return editing == nil && doc.canUndo
         case #selector(redoEdit(_:)): return editing == nil && doc.canRedo
         case #selector(deleteSelection(_:)): return editing == nil && canvas.selected != nil
+        case #selector(restoreMarkdown(_:)): return MinerU.configured
         case #selector(rotateLeft(_:)), #selector(rotateRight(_:)), #selector(flipHorizontal(_:)),
              #selector(flipVertical(_:)), #selector(startCrop(_:)), #selector(insertImage(_:)):
             return !canvas.cropMode
@@ -243,7 +266,7 @@ final class ActionMenuItem: NSMenuItem {
 
     init(title: String, handler: @escaping () -> Void) {
         self.handler = handler
-        super.init(title: title, action: #selector(run), keyEquivalent: "")
+        super.init(title: Loc.t(title), action: #selector(run), keyEquivalent: "")
         target = self
     }
 

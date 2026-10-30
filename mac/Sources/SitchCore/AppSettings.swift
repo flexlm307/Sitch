@@ -12,12 +12,23 @@ public struct AppSettings: Codable, Equatable, Sendable {
     /// The one-time "Open Sitch at login?" offer has been made (made on the first launch from an
     /// Applications folder, so a first run straight off the disk image doesn't use it up).
     public var offeredLoginItem = false
+    /// "System" | "en" | "zh"; read once at launch (see Shell/Loc), so a change applies after a restart.
+    public var language = "System"
 
     // -- Capture --------------------------------------------------------------
     public var captureHotkey = "Cmd+Opt+4"
     public var recaptureHotkey = "Cmd+Opt+Shift+4"
     /// Quick Capture → Clipboard. ⌃ echoes the system's own "to the clipboard" chord (⌃⇧⌘4).
     public var quickCopyHotkey = "Ctrl+Opt+Cmd+4"
+    /// Pin the clipboard image on top of everything (Shell/Pins).
+    public var pinHotkey = "Cmd+Opt+P"
+    /// Scrolling capture: pick a region, scroll it, get one long image.
+    public var scrollHotkey = "Cmd+Opt+Shift+S"
+    /// Screen recording: pick a region, record it to recordFormat.
+    public var recordHotkey = "Cmd+Opt+Shift+R"
+    /// "gif" | "mp4"
+    public var recordFormat = "gif"
+    public var recordPointer = true
     public var defaultSaveFolder = ""
     /// "png" | "jpg" | "pdf" | "tiff"
     public var defaultFormat = "png"
@@ -25,6 +36,18 @@ public struct AppSettings: Codable, Equatable, Sendable {
     /// Every capture lands on the clipboard immediately, ready to paste (on by default).
     public var afterCopy = true
     public var afterSave = false
+    /// Run MediaMini (an external Python tool) over every PNG/JPG Sitch saves.
+    public var compressWithMediaMini = false
+    /// Folder holding MediaMini's cli.py.
+    public var mediaMiniFolder = ""
+    /// Region capture: hover snaps to the accessibility element under the pointer, not just its window.
+    public var snapToElements = true
+    /// Region capture: a magnifier with the colour under the pointer (C copies it).
+    public var showMagnifier = true
+    /// "Vision" (built in) | "RapidOCR" (external Python worker, see Export/RapidOcr).
+    public var ocrEngine = "Vision"
+    /// MinerU's virtual environment for "Restore as Markdown"; empty = look in the usual places.
+    public var minerUFolder = ""
     /// Hang every capture on the screenshot line (merged from Snapline), when the line is on.
     public var afterHang = true
     /// The screenshot line along the top of the screen. Its own settings live in SitchShelf.
@@ -67,14 +90,26 @@ public struct AppSettings: Codable, Equatable, Sendable {
         showInDock = v(.showInDock, d.showInDock)
         openAtLogin = v(.openAtLogin, d.openAtLogin)
         offeredLoginItem = v(.offeredLoginItem, d.offeredLoginItem)
+        language = v(.language, d.language)
         captureHotkey = v(.captureHotkey, d.captureHotkey)
         recaptureHotkey = v(.recaptureHotkey, d.recaptureHotkey)
         quickCopyHotkey = v(.quickCopyHotkey, d.quickCopyHotkey)
+        pinHotkey = v(.pinHotkey, d.pinHotkey)
+        scrollHotkey = v(.scrollHotkey, d.scrollHotkey)
+        recordHotkey = v(.recordHotkey, d.recordHotkey)
+        recordFormat = v(.recordFormat, d.recordFormat)
+        recordPointer = v(.recordPointer, d.recordPointer)
         defaultSaveFolder = v(.defaultSaveFolder, d.defaultSaveFolder)
         defaultFormat = v(.defaultFormat, d.defaultFormat)
         afterShowEditor = v(.afterShowEditor, d.afterShowEditor)
         afterCopy = v(.afterCopy, d.afterCopy)
         afterSave = v(.afterSave, d.afterSave)
+        compressWithMediaMini = v(.compressWithMediaMini, d.compressWithMediaMini)
+        mediaMiniFolder = v(.mediaMiniFolder, d.mediaMiniFolder)
+        snapToElements = v(.snapToElements, d.snapToElements)
+        showMagnifier = v(.showMagnifier, d.showMagnifier)
+        ocrEngine = v(.ocrEngine, d.ocrEngine)
+        minerUFolder = v(.minerUFolder, d.minerUFolder)
         afterHang = v(.afterHang, d.afterHang)
         lineEnabled = v(.lineEnabled, d.lineEnabled)
         timerSeconds = v(.timerSeconds, d.timerSeconds)

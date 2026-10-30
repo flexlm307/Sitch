@@ -320,12 +320,18 @@ extension EditorWindowController {
 
         let drag = DragOutButton()
         drag.makeFile = { [weak self] in self?.writeTempPNG() }
-        let copyButton = ChromeButton(.icon, .glyph(ToolIcons.copy), toolTip: "Copy image (⌘C)") { [weak self] in self?.copyImage() }
+        let pinButton = ChromeButton(.icon, .glyph(ToolIcons.pin), toolTip: Loc.t("Pin to screen (F3)")) { [weak self] in self?.pinToScreen(nil) }
+        // Only when MinerU is found (Settings > Editor); re-checked whenever the window becomes key.
+        markdownButton = ChromeButton(.icon, .text("MD", .boldSystemFont(ofSize: 11)),
+                                      toolTip: Loc.t("Restore as Markdown with MinerU (⇧⌘M)")) { [weak self] in self?.restoreMarkdown(nil) }
+        markdownButton.isHidden = !MinerU.configured
+        let ocrButton = ChromeButton(.icon, .glyph(ToolIcons.ocr), toolTip: Loc.t("Extract text (⇧⌘O)")) { [weak self] in self?.extractText(nil) }
+        let copyButton = ChromeButton(.icon, .glyph(ToolIcons.copy), toolTip: Loc.t("Copy image (⌘C)")) { [weak self] in self?.copyImage() }
         saveButton = ChromeButton(.icon, .menuLabel(ToolIcons.save, "." + saveFormat, body), toolTip: "Save (⌘S)")
         saveButton.onClick = { [weak self] in self?.showSaveMenu() }
         shareButton = ChromeButton(.icon, .glyph(ToolIcons.share), toolTip: "Share")
         shareButton.onClick = { [weak self] in self?.shareImage(nil) }
-        let right = hStack([drag, copyButton, saveButton, shareButton])
+        let right = hStack([drag, pinButton, markdownButton, ocrButton, copyButton, saveButton, shareButton])
 
         for v in [left, right] {
             v.translatesAutoresizingMaskIntoConstraints = false

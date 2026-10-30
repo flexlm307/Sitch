@@ -2,7 +2,7 @@ import AppKit
 import SitchCore
 import SitchShelf
 
-/// Settings: General / Capture / Editor pages (windows/Sitch/Editor/SettingsWindow.xaml parity).
+/// Settings: General / Capture / Save & Record / Editor pages (windows/Sitch/Editor/SettingsWindow.xaml parity).
 /// Native AppKit controls; every change persists immediately, like the Windows window.
 @MainActor
 final class SettingsWindowController: NSWindowController, NSWindowDelegate {
@@ -20,13 +20,14 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private var pages: [NSView] = []
     private var loginBox: NSButton!
     private var recorders: [HotkeyRecorder] = []
+    private var accessibilityButton: NSButton?
 
     private var app: AppController { AppController.shared }
 
     private init() {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 540, height: 600),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        window.title = "Sitch Settings"
+        window.title = Loc.t("Sitch Settings")
         window.isReleasedWhenClosed = false
         super.init(window: window)
         window.delegate = self
@@ -39,6 +40,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     func windowDidBecomeKey(_ notification: Notification) {
         // System Settings → Login Items can flip this behind our back.
         loginBox?.state = LoginItem.isEnabled ? .on : .off
+        accessibilityButton?.isHidden = ElementSnapper.isTrusted
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -50,12 +52,12 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private func build() {
         guard let content = window?.contentView else { return }
 
-        let tabs = NSSegmentedControl(labels: ["General", "Capture", "Editor"], trackingMode: .selectOne,
+        let tabs = NSSegmentedControl(labels: ["General", "Capture", "Save & Record", "Editor"].map(Loc.t), trackingMode: .selectOne,
                                       target: nil, action: nil)
         tabs.selectedSegment = 0
         bind(tabs) { [weak self] in self?.showPage(tabs.selectedSegment) }
 
-        pages = [generalPage(), capturePage(), editorPage()]
+        pages = [generalPage()] + capturePages() + [editorPage()]
 
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
         let footer = NSTextField(labelWithString: "Sitch \(version)")
@@ -83,7 +85,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             pageHost.topAnchor.constraint(equalTo: tabs.bottomAnchor, constant: 10),
             pageHost.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 28),
             pageHost.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -28),
-            pageHost.bottomAnchor.constraint(equalTo: footer.topAnchor, constant: -12),
+            pageHost.bottomAnchor.constraint(lessThanOrEqualTo: footer.topAnchor, constant: -12),
             footer.centerXAnchor.constraint(equalTo: content.centerXAnchor),
             footer.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -14),
         ])
@@ -93,6 +95,14 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private func showPage(_ index: Int) {
         for (i, page) in pages.enumerated() { page.isHidden = i != index }
         recorders.forEach { $0.stopRecording(commit: false) }
+        // Pages differ in length: fit the window to this one, keeping its top edge where it is.
+        guard let window, index < pages.count else { return }
+        let height = max(300, pages[index].fittingSize.height + 110)
+        var frame = window.frame
+        let content = window.frameRect(forContentRect: NSRect(x: 0, y: 0, width: 540, height: height))
+        frame.origin.y += frame.height - content.height
+        frame.size = content.size
+        window.setFrame(frame, display: true, animate: window.isVisible)
     }
 
     private func page(_ rows: [NSView]) -> NSView {
@@ -104,7 +114,8 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func section(_ title: String) -> NSView {
-        let label = NSTextField(labelWithString: title.uppercased())
+        // Small caps headers in English; uppercasing would only mangle the Latin words in a Chinese one.
+        let label = NSTextField(labelWithString: Loc.isChinese ? Loc.t(title) : Loc.t(title).uppercased())
         label.font = .systemFont(ofSize: 11, weight: .semibold)
         label.textColor = .secondaryLabelColor
         // Extra space above each header (the stack spacing alone is too tight between groups).
@@ -114,7 +125,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func note(_ text: String) -> NSTextField {
-        let label = NSTextField(wrappingLabelWithString: text)
+        let label = NSTextField(wrappingLabelWithString: Loc.t(text))
         label.font = .systemFont(ofSize: 11.5)
         label.textColor = .secondaryLabelColor
         label.preferredMaxLayoutWidth = 470
@@ -122,7 +133,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func row(_ title: String, _ control: NSView, labelWidth: CGFloat = 150) -> NSView {
-        let label = NSTextField(labelWithString: title)
+        let label = NSTextField(labelWithString: Loc.t(title))
         label.widthAnchor.constraint(equalToConstant: labelWidth).isActive = true
         let stack = NSStackView(views: [label, control])
         stack.alignment = .centerY
@@ -131,7 +142,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func checkbox(_ title: String, _ on: Bool, _ changed: @escaping (Bool) -> Void) -> NSButton {
-        let box = NSButton(checkboxWithTitle: title, target: nil, action: nil)
+        let box = NSButton(checkboxWithTitle: Loc.t(title), target: nil, action: nil)
         box.state = on ? .on : .off
         bind(box) { changed(box.state == .on) }
         return box
@@ -164,7 +175,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         let themes = ["System", "Light", "Dark"]
         var radios: [NSButton] = []
         for t in themes {
-            let r = NSButton(radioButtonWithTitle: t, target: nil, action: nil)
+            let r = NSButton(radioButtonWithTitle: Loc.t(t), target: nil, action: nil)
             r.state = s.theme == t || (t == "System" && !themes.contains(s.theme)) ? .on : .off
             bind(r) { [weak self] in
                 radios.forEach { $0.state = $0 === r ? .on : .off }
@@ -185,7 +196,18 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             self?.setLogin(on)
         }
 
+        let languages = [("System", "System"), ("en", "English"), ("zh", "中文")]
+        let language = NSPopUpButton(frame: .zero, pullsDown: false)
+        language.addItems(withTitles: languages.map { $0.0 == "System" ? Loc.t("Follow macOS") : $0.1 })
+        language.selectItem(at: languages.firstIndex { $0.0 == s.language } ?? 0)
+        bind(language) { [weak self] in
+            self?.app.settings.language = languages[max(0, language.indexOfSelectedItem)].0
+            self?.app.saveSettings()
+        }
+
         return page([
+            section("Language"), language,
+            note("Applies the next time Sitch starts."),
             section("Appearance"), themeRow,
             section("Behavior"), dock, loginBox,
             note("Sitch lives in your menu bar — click the pink arrow for every capture mode, quick capture and settings."),
@@ -200,14 +222,14 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             app.saveSettings()
         } catch {
             let alert = NSAlert()
-            alert.messageText = "Couldn't update the login item."
+            alert.messageText = Loc.t("Couldn't update the login item.")
             alert.informativeText = error.localizedDescription
             if let window { alert.beginSheetModal(for: window) } else { alert.runModal() }
         }
         loginBox.state = LoginItem.isEnabled ? .on : .off
     }
 
-    private func capturePage() -> NSView {
+    private func capturePages() -> [NSView] {
         let s = app.settings
 
         recorders = AppController.hotkeySlots.map { slot in
@@ -219,7 +241,37 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
                 self?.app.registerHotkeys()
             }
         }
-        let shortcutRows = zip(AppController.hotkeySlots, recorders).map { row($0.name, $1.button) }
+        let shortcutRows = zip(AppController.hotkeySlots, recorders).map { row($0.name, $1.button, labelWidth: 170) }
+
+        let snap = checkbox("Snap to the control, page or window under the pointer", s.snapToElements) { [weak self] on in
+            self?.app.settings.snapToElements = on; self?.app.saveSettings()
+            if on && !ElementSnapper.isTrusted { ElementSnapper.requestTrust() }
+        }
+        let trust = NSButton(title: Loc.t("Allow Accessibility access…"), target: nil, action: nil)
+        bind(trust) { ElementSnapper.requestTrust() }
+        trust.isHidden = ElementSnapper.isTrusted
+        accessibilityButton = trust
+        let magnifier = checkbox("Show a magnifier with the colour under the pointer", s.showMagnifier) { [weak self] on in
+            self?.app.settings.showMagnifier = on; self?.app.saveSettings()
+        }
+
+        let recordFormat = NSPopUpButton(frame: .zero, pullsDown: false)
+        recordFormat.addItems(withTitles: ["GIF", Loc.t("Video (MP4)")])
+        recordFormat.selectItem(at: s.recordFormat == "mp4" ? 1 : 0)
+        bind(recordFormat) { [weak self] in
+            self?.app.settings.recordFormat = recordFormat.indexOfSelectedItem == 1 ? "mp4" : "gif"
+            self?.app.saveSettings()
+        }
+        let pointer = checkbox("Show the pointer in recordings", s.recordPointer) { [weak self] on in
+            self?.app.settings.recordPointer = on; self?.app.saveSettings()
+        }
+
+        let compress = checkbox("Compress saved PNG and JPG files with MediaMini", s.compressWithMediaMini) { [weak self] on in
+            self?.app.settings.compressWithMediaMini = on; self?.app.saveSettings()
+        }
+        let mediaMini = folderPicker(s.mediaMiniFolder, placeholder: "~/MediaMini") { [weak self] path in
+            self?.app.settings.mediaMiniFolder = path; self?.app.saveSettings()
+        }
 
         let folder = NSTextField(string: s.defaultSaveFolder)
         folder.placeholderString = "~/Pictures/Sitch"
@@ -229,8 +281,8 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             self?.app.settings.defaultSaveFolder = folder.stringValue.trimmingCharacters(in: .whitespaces)
             self?.app.saveSettings()
         }
-        let browse = NSButton(title: "Browse…", target: nil, action: nil)
-        bind(browse) { [weak self] in self?.browseFolder(folder) }
+        let browse = NSButton(title: Loc.t("Browse…"), target: nil, action: nil)
+        bind(browse) { [weak self] in self?.browseFolder(folder) { self?.app.settings.defaultSaveFolder = $0 } }
         let folderRow = NSStackView(views: [folder, browse])
         folderRow.spacing = 8
 
@@ -260,12 +312,12 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             self?.app.saveSettings()
             self?.app.updateShelf()
         }
-        let lineSettings = NSButton(title: "Line Settings…", target: nil, action: nil)
+        let lineSettings = NSButton(title: Loc.t("Line Settings…"), target: nil, action: nil)
         bind(lineSettings) { [weak self] in self?.app.shelf?.showSettings() }
 
         let timerValues = [0, 3, 5, 10]
         let timer = NSPopUpButton(frame: .zero, pullsDown: false)
-        timer.addItems(withTitles: ["Off", "3 s", "5 s", "10 s"])
+        timer.addItems(withTitles: [Loc.t("Off"), "3 s", "5 s", "10 s"])
         timer.selectItem(at: timerValues.firstIndex(of: s.timerSeconds) ?? 0)
         bind(timer) { [weak self] in
             self?.app.settings.timerSeconds = timerValues[max(0, timer.indexOfSelectedItem)]
@@ -278,27 +330,53 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             self?.app.updateScreenshotWatcher()
         }
 
-        return page([
+        // Two tabs: everything on one page is taller than a laptop screen.
+        let capture = page([
             section("Shortcuts"),
         ] + shortcutRows + [
             note("Click a shortcut, then press the new combination (e.g. ⌥⌘4). Esc reverts."),
-            section("Saving"), folderRow,
-            row("Default format", format, labelWidth: 110),
+            section("Region capture"), snap, trust, magnifier,
+            note("Hover highlights the control, page or window under the pointer; scroll to step out to its parents and back. Click to capture, F3 pins it, S starts a scrolling capture, R records it, C copies the colour."),
             section("After capturing"), show, copy, save, hang,
-            section("Screenshot line"), line, lineSettings,
-            note("The line stays off while the standalone Snapline app is running."),
             section("Timer & watcher"),
             row("Capture timer", timer, labelWidth: 110),
             watch,
         ])
+        let output = page([
+            section("Saving"), folderRow,
+            row("Default format", format, labelWidth: 110),
+            compress, mediaMini,
+            note("After each save, Sitch runs MediaMini's cli.py over the PNG or JPG in the background and keeps the result only when the file gets smaller. Needs Python."),
+            section("Recording"),
+            row("Format", recordFormat, labelWidth: 110),
+            pointer,
+            note("MP4 is encoded by macOS. GIF needs FFmpeg (brew install ffmpeg). GIFs stop after 1 minute, videos after 30. The file is saved and put on the clipboard."),
+            section("Screenshot line"), line, lineSettings,
+            note("The line stays off while the standalone Snapline app is running."),
+        ])
+        return [capture, output]
     }
 
-    private func browseFolder(_ field: NSTextField) {
+    /// A folder path field with Browse…; `commit` gets the trimmed path on Return, focus loss or a pick.
+    private func folderPicker(_ value: String, placeholder: String, _ commit: @escaping (String) -> Void) -> NSView {
+        let field = NSTextField(string: value)
+        field.placeholderString = placeholder
+        field.cell?.sendsActionOnEndEditing = true
+        field.widthAnchor.constraint(equalToConstant: 360).isActive = true
+        bind(field) { commit(field.stringValue.trimmingCharacters(in: .whitespaces)) }
+        let browse = NSButton(title: Loc.t("Browse…"), target: nil, action: nil)
+        bind(browse) { [weak self] in self?.browseFolder(field, commit) }
+        let row = NSStackView(views: [field, browse])
+        row.spacing = 8
+        return row
+    }
+
+    private func browseFolder(_ field: NSTextField, _ commit: @escaping (String) -> Void) {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
-        panel.prompt = "Choose"
+        panel.prompt = Loc.t("Choose")
         let current = (field.stringValue as NSString).expandingTildeInPath
         if !current.isEmpty { panel.directoryURL = URL(fileURLWithPath: current, isDirectory: true) }
         guard let window else { return }
@@ -306,7 +384,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             guard response == .OK, let url = panel.url else { return }
             MainActor.assumeIsolated {
                 field.stringValue = url.path
-                self?.app.settings.defaultSaveFolder = url.path
+                commit(url.path)
                 self?.app.saveSettings()
             }
         }
@@ -337,7 +415,25 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         let dimRow = NSStackView(views: [dim, dimLabel])
         dimRow.spacing = 10
 
+        let engines = ["Vision", "RapidOCR"]
+        let engine = NSPopUpButton(frame: .zero, pullsDown: false)
+        engine.addItems(withTitles: [Loc.t("macOS (built in)"), "RapidOCR"])
+        engine.selectItem(at: engines.firstIndex(of: s.ocrEngine) ?? 0)
+        bind(engine) { [weak self] in
+            self?.app.settings.ocrEngine = engines[max(0, engine.indexOfSelectedItem)]
+            self?.app.saveSettings()
+        }
+        let detected = MinerU.folder?.path ?? "~/.local/share/mineru/current"
+        let mineru = folderPicker(s.minerUFolder, placeholder: detected) { [weak self] path in
+            self?.app.settings.minerUFolder = path; self?.app.saveSettings()
+        }
+
         return page([
+            section("Text recognition"),
+            row("OCR engine", engine, labelWidth: 110),
+            note("RapidOCR needs Python with pip install rapidocr; the first read after Sitch starts takes a few seconds to load it. If it fails, the macOS OCR is used."),
+            section("Restore as Markdown (MinerU)"), mineru,
+            note("The MinerU environment folder (it holds bin/python). Empty: ~/.local/share/mineru/current when it exists. Tables, formulas and figures come back as Markdown with images; the first run loads the models (about half a minute), later ones take seconds."),
             section("Tools"), remember,
             row("Arrow width (px)", arrow),
             row("Text size (pt)", text),

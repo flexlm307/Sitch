@@ -60,6 +60,23 @@ Known limits: scrolling capture is downward only and expects whole-pixel scrolli
 the scrollbar appears in every slice. Electron apps without accessibility expose only their window to
 snapping. Windows' own OCR is poor on English when only the Chinese OCR pack is installed.
 
+## Mac state (2026-10-30)
+
+Step 1 below is done in code: the merge compiled as-is, and every Windows feature above now has a Mac
+counterpart (see the "Windows feature pass, ported" list in `docs/ARCHITECTURE.md`). Verified without the
+UI: `swift build`, `swift test` (20 tests, incl. the scroll stitcher), smoke test, MinerU (server via the
+watchdog wrapper, `file_parse` of the demo, ZIP layout, exit on parent death), Vision OCR rows, FrameWriter
+(VFR timing), the GIF FFmpeg commands. Then driven in the real UI (test copy in `~/Sitch-test`, ad-hoc
+signed, so every rebuild needs the Screen Recording + Accessibility grants removed and re-added): Chinese
+menus/editor/Settings, Extract text, pins (F3, wheel zoom, Esc, double-click), MinerU from the editor,
+overlay magnifier + C, AX snapping with wheel steps (TextEdit: text entry area → scroll area → window),
+scrolling capture (stitched 1348 px / 8 frames; Done opens the editor), GIF recording (128 frames, Sitch's
+own windows absent). Fixed on the way: Settings split into four tabs (too tall), "Edit" menu wording,
+scrolling Done did nothing (weak self), hand-off now brings the region's app to the front (this last one
+built and unit-tested, not re-driven). Not exercised: MP4 recording, ⌥⌘P, the line's new photo menu items. MediaMini on this Mac
+has no `cli.py` (only the GUI app), so post-save compression can't run until one exists. RapidOCR isn't
+installed in any Python here (Vision is the default). No Developer ID in this keychain: builds are ad-hoc.
+
 ## Next steps
 
 1. **Mac** (needs macOS): `cd mac && swift build && swift test`, fix compile errors in

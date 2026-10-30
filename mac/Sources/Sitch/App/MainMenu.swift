@@ -50,6 +50,10 @@ enum MainMenu {
         image.addItem(item("Rotate Right", Sel.rotateRight, "r"))
         image.addItem(item("Flip Horizontal", Sel.flipHorizontal))
         image.addItem(item("Flip Vertical", Sel.flipVertical))
+        image.addItem(.separator())
+        image.addItem(item("Extract Text", Sel.extractText, "o", [.command, .shift]))
+        image.addItem(item("Pin to Screen", Sel.pinToScreen, String(Character(UnicodeScalar(NSF3FunctionKey)!)), []))
+        image.addItem(item("Restore as Markdown (MinerU)", Sel.restoreMarkdown, "m", [.command, .shift]))
         main.addItem(submenu: image, title: "Image")
 
         let view = NSMenu(title: "View")
@@ -85,19 +89,24 @@ enum MainMenu {
         static let zoomIn = NSSelectorFromString("zoomIn:")
         static let zoomOut = NSSelectorFromString("zoomOut:")
         static let zoomToFit = NSSelectorFromString("zoomToFit:")
+        static let extractText = NSSelectorFromString("extractText:")
+        static let pinToScreen = NSSelectorFromString("pinToScreen:")
+        static let restoreMarkdown = NSSelectorFromString("restoreMarkdown:")
     }
 
     private static func item(_ title: String, _ action: Selector, _ key: String = "",
                              _ mods: NSEvent.ModifierFlags = .command) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
         item.keyEquivalentModifierMask = key.isEmpty ? [] : mods
+        item.title = Loc.t(title)
         return item
     }
 }
 
-private extension NSMenu {
+@MainActor private extension NSMenu {
     func addItem(submenu: NSMenu, title: String) {
         let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        submenu.title = Loc.t(submenu.title)
         item.submenu = submenu
         addItem(item)
     }

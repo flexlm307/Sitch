@@ -202,8 +202,9 @@ final class Line: ObservableObject {
         guard let i = index(of: id) else { return }
         items[i].used = true
         let url = items[i].url
+        let read = readText
         Task { @MainActor in
-            let text = await Ocr.read(url)
+            let text = await read(url)
             guard let text, !text.isEmpty else { NSSound.beep(); return }
             let pb = NSPasteboard.general
             pb.clearContents()
@@ -234,6 +235,21 @@ final class Line: ObservableObject {
 
     /// Opens a photo in Sitch's editor. Set by ShelfController.
     var onEdit: @MainActor (URL) -> Void = { _ in }
+    // Sitch's pins, MinerU and OCR. Set by ShelfController.
+    var onPin: @MainActor (URL) -> Void = { _ in }
+    var onRestoreMarkdown: @MainActor (URL) -> Void = { _ in }
+    var canRestoreMarkdown: @MainActor () -> Bool = { false }
+    var readText: @MainActor (URL) async -> String? = { await Ocr.read($0) }
+
+    func pinToScreen(_ id: UUID) {
+        guard let item = item(id) else { return }
+        onPin(item.url)
+    }
+
+    func restoreMarkdown(_ id: UUID) {
+        guard let item = item(id) else { return }
+        onRestoreMarkdown(item.url)
+    }
 
     func canRevert(_ id: UUID) -> Bool {
         guard let item = item(id) else { return false }

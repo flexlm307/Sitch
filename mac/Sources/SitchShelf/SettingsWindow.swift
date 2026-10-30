@@ -74,7 +74,7 @@ struct SettingsView: View {
                     Text(L("Follow macOS")).tag("auto"); Text(L("Light")).tag("light"); Text(L("Dark")).tag("dark")
                 }
                 Picker(L("Language"), selection: $s.language) {
-                    Text(L("Follow macOS")).tag("auto"); Text("English").tag("en"); Text("العربية").tag("ar")
+                    Text(L("Follow macOS")).tag("auto"); Text("English").tag("en"); Text("中文").tag("zh"); Text("العربية").tag("ar")
                 }
             }
             Section(L("Captures")) {

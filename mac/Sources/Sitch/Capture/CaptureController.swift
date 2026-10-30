@@ -25,7 +25,10 @@ struct DisplayInfo {
 /// Orchestrates interactive capture (Windows CaptureController parity): freezes every display
 /// once, opens one overlay per display, and completes with a crop of the frozen frame. In
 /// Region mode a plain click (no drag) captures the hovered window — one hotkey covers region
-/// AND window, Skitch-style. Arrow keys define/nudge a selection, Return confirms.
+/// AND window, Skitch-style — or, with `snapToElements` and the Accessibility permission, the hovered
+/// UI element; the scroll wheel steps out to its parents and back in. Arrow keys define/nudge a
+/// selection, Return confirms. On a target, F3 pins it, S scrolls it, R records it; C copies the
+/// magnifier's colour.
 ///
 /// Coordinate rule: everything here is GLOBAL POINTS with a TOP-LEFT origin at the primary
 /// display (Quartz display space — the same space as CGWindowList bounds and SCDisplay.frame).
@@ -44,6 +47,11 @@ final class CaptureController {
     private var completion: (@MainActor (CaptureResult) -> Void)?
     private var wasActive = false
     private var activationObserver: NSObjectProtocol?
+    private var snapper: ElementSnapper?
+    // Elements under the pointer, window first; snapLevel indexes the highlighted one.
+    private var snapChain: [SnapTarget] = []
+    private var snapLevel = 0
+    private var levelsUp = 0 // wheel steps out from the innermost element, kept while the pointer stays inside
 
     // Selection state (global points)
     private(set) var dragging = false
@@ -63,10 +71,26 @@ final class CaptureController {
         return CGRect(x: x1, y: y1, width: max(1, x2 - x1), height: max(1, y2 - y1))
     }
 
-    /// What the overlays outline: the selection, else (region or window mode) the hovered window.
+    /// The snapped element below window level, or nil (then a click takes the whole window).
+    var hoveredElement: SnapTarget? {
+        snapLevel > 0 && snapLevel < snapChain.count ? snapChain[snapLevel] : nil
+    }
+
+    /// The highlighted thing's role for the size readout ("button", "窗口"), or "".
+    var hoverKind: String {
+        mode == .region && hasSelection ? "" : snapLevel < snapChain.count ? snapChain[snapLevel].kind : ""
+    }
+
+    /// What the overlays outline: the selection, else the snapped element, else the hovered window.
     var highlightRect: CGRect? {
         if mode == .region && hasSelection { return selectionRect }
-        return hoveredWindow?.frame
+        return hoveredElement?.frame ?? hoveredWindow?.frame
+    }
+
+    /// What a click (or Return) would capture now: the selection, the snapped element or the window.
+    private var target: CGRect? {
+        if hasSelection { return selectionRect }
+        return hoveredElement?.frame ?? (mode != .fullScreen ? hoveredWindow?.frame : nil)
     }
 
     // MARK: - Interactive
@@ -80,6 +104,8 @@ final class CaptureController {
         self.completion = completion
         resetSelection()
         wasActive = NSApp.isActive
+        snapper = mode == .region && AppController.shared.settings.snapToElements && ElementSnapper.isTrusted
+            ? ElementSnapper { [weak self] window, chain in self?.snapped(window, chain) } : nil
 
         displays = DisplayGeometry.all()
         // Window list is used by Window mode AND by Region mode's click-to-capture-window.
@@ -147,8 +173,9 @@ final class CaptureController {
         let rect = selectionRect
         if rect.width < 4 || rect.height < 4 {
             dragging = false
-            // A plain click captures the window under the cursor (spec: one hotkey, all modes).
-            if let win = hoveredWindow { completeWindow(win) } else { cancel() }
+            // A plain click captures the snapped element, else the window under the cursor (spec: one hotkey, all modes).
+            if let element = hoveredElement { completeRegion(element.frame) }
+            else if let win = hoveredWindow { completeWindow(win) } else { cancel() }
             return
         }
         completeRegion(rect)
@@ -185,7 +212,11 @@ final class CaptureController {
     func cancel() {
         closeOverlays()
         cleanup()
-        // Hand focus back to whatever the user was in before the hotkey.
+        returnFocus()
+    }
+
+    /// Hand focus back to whatever the user was in before the hotkey.
+    private func returnFocus() {
         if !wasActive { NSApp.deactivate() }
     }
 
@@ -193,6 +224,77 @@ final class CaptureController {
     func resultPixelSize(of rect: CGRect) -> (width: Int, height: Int)? {
         guard let d = DisplayGeometry.mostOverlapping(rect, in: displays) else { return nil }
         return (Int((rect.width * d.scale).rounded()), Int((rect.height * d.scale).rounded()))
+    }
+
+    // MARK: - Hand-offs (keys on a target)
+
+    /// F3: what a click would capture is pinned in place instead.
+    func pinTarget() {
+        guard let (rect, display) = clippedTarget(), rect.width >= 4, rect.height >= 4,
+              let frame = frozen[display.id], let image = ScreenFreezer.crop(frame, display: display.frame, to: rect) else { return }
+        closeOverlays()
+        cleanup()
+        returnFocus()
+        Pins.pin(image, pointScale: display.scale, at: rect)
+    }
+
+    /// S: a scrolling capture of what a click would take.
+    func scrollTarget() { handOff { ScrollCaptureSession.start(rect: $0, display: $1) } }
+
+    /// R: record what a click would take (format from Settings).
+    func recordTarget() {
+        handOff { RecordingSession.start(rect: $0, display: $1, format: AppController.shared.settings.recordFormat) }
+    }
+
+    /// Ends the capture and gives the target to a live session. The overlays go first so the session's
+    /// first frame shows the screen, not the frozen copy.
+    private func handOff(_ start: @escaping @MainActor (CGRect, DisplayGeometry) -> Void) {
+        guard mode == .region, let (rect, display) = clippedTarget() else { return }
+        // The app whose window holds the region goes to the front, or an open Sitch window (Settings, an
+        // editor) would cover the area the user is about to scroll. That window, not the app that was
+        // frontmost: the hotkey may have been pressed from anywhere.
+        let owner = windows.first { $0.frame.contains(rect.center) }.flatMap { NSRunningApplication(processIdentifier: $0.pid) }
+        closeOverlays()
+        cleanup()
+        returnFocus()
+        owner?.activate(options: [.activateAllWindows])
+        start(rect, display)
+    }
+
+    private func clippedTarget() -> (CGRect, DisplayGeometry)? {
+        guard let t = target else { return nil }
+        guard let display = selectionDisplay ?? DisplayGeometry.containing(t.center, in: displays)
+                ?? DisplayGeometry.mostOverlapping(t, in: displays) else { return nil }
+        let r = t.intersection(display.frame)
+        return r.isNull ? nil : (r, display)
+    }
+
+    /// Magnifier sample: the frozen pixels in a `grid`×`grid` square around the pointer (clamped inside
+    /// the display), where the pointer's own pixel sits in it, and that pixel's colour.
+    func magnifierSample(grid: Int) -> (image: CGImage, center: (x: Int, y: Int), color: (r: Int, g: Int, b: Int), pixel: (x: Int, y: Int))? {
+        guard let display = displays.first(where: { $0.frame.contains(pointer) }), let frame = frozen[display.id] else { return nil }
+        let sx = CGFloat(frame.width) / display.frame.width, sy = CGFloat(frame.height) / display.frame.height
+        let px = Int(((pointer.x - display.frame.minX) * sx).rounded(.down)), py = Int(((pointer.y - display.frame.minY) * sy).rounded(.down))
+        let x0 = max(0, min(px - grid / 2, frame.width - grid)), y0 = max(0, min(py - grid / 2, frame.height - grid))
+        guard let crop = frame.cropping(to: CGRect(x: x0, y: y0, width: min(grid, frame.width), height: min(grid, frame.height))) else { return nil }
+        // Read the pixel in the frame's own colour space: the values the display shows, like Digital Color Meter's native mode.
+        let space = crop.colorSpace?.model == .rgb ? crop.colorSpace! : CGColorSpace(name: CGColorSpace.sRGB)!
+        var rgba = [UInt8](repeating: 0, count: 4)
+        let cx = px - x0, cy = py - y0
+        guard let ctx = CGContext(data: &rgba, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: space,
+                                  bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue) else { return nil }
+        ctx.draw(crop, in: CGRect(x: -cx, y: cy - crop.height + 1, width: crop.width, height: crop.height))
+        return (crop, (cx, cy), (Int(rgba[0]), Int(rgba[1]), Int(rgba[2])), (px, py))
+    }
+
+    /// C: the colour under the pointer goes to the clipboard and the capture ends (Shift: as RGB).
+    func copyColor(asRGB: Bool) {
+        guard mode == .region, AppController.shared.settings.showMagnifier, let c = magnifierSample(grid: 1)?.color else { return }
+        let text = asRGB ? "\(c.r), \(c.g), \(c.b)" : String(format: "#%02X%02X%02X", c.r, c.g, c.b)
+        cancel()
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        Toast.show(pb.setString(text, forType: .string) ? Loc.f("Copied {0}", text) : Loc.t("Clipboard is busy — try again."))
     }
 
     // MARK: - Completion
@@ -270,7 +372,35 @@ final class CaptureController {
     // MARK: - Helpers
 
     private func updateHover() {
+        let was = hoveredWindow?.id
         hoveredWindow = windows.first { $0.frame.contains(pointer) } // front-to-back: first hit is topmost
+        guard let snapper else { return }
+        if hoveredWindow?.id != was { resetSnap() }
+        else if snapLevel < snapChain.count, !snapChain[snapLevel].frame.contains(pointer) { levelsUp = 0 }
+        if let win = hoveredWindow { snapper.request(win, at: pointer) }
+    }
+
+    private func snapped(_ window: WindowEntry, _ chain: [SnapTarget]) {
+        guard isActive, !dragging, window.id == hoveredWindow?.id else { return }
+        snapChain = chain
+        snapLevel = max(0, chain.count - 1 - levelsUp)
+        repaint()
+    }
+
+    /// Scroll wheel: `outward` steps toward the window, otherwise back in.
+    func stepSnap(outward: Bool) {
+        guard snapper != nil, !dragging, !hasKeyboardSelection, !snapChain.isEmpty else { return }
+        let level = clamp(snapLevel + (outward ? -1 : 1), 0, snapChain.count - 1)
+        guard level != snapLevel else { return }
+        snapLevel = level
+        levelsUp = snapChain.count - 1 - level
+        repaint()
+    }
+
+    private func resetSnap() {
+        snapChain = []
+        snapLevel = 0
+        levelsUp = 0
     }
 
     private func clampToDisplay(_ p: CGPoint) -> CGPoint {
@@ -291,6 +421,7 @@ final class CaptureController {
         hasKeyboardSelection = false
         hoveredWindow = nil
         selectionDisplay = nil
+        resetSnap()
     }
 
     private func cleanup() {
@@ -299,6 +430,8 @@ final class CaptureController {
         frozen = [:]
         windows = []
         completion = nil
+        snapper?.cancel()
+        snapper = nil
         resetSelection()
         isActive = false
     }
@@ -308,7 +441,7 @@ final class CaptureController {
             ScreenRecordingPermission.showDeniedAlert()
         } else {
             let alert = NSAlert()
-            alert.messageText = "Couldn't capture the screen"
+            alert.messageText = Loc.t("Couldn't capture the screen")
             alert.informativeText = error.localizedDescription
             NSApp.activate()
             alert.runModal()

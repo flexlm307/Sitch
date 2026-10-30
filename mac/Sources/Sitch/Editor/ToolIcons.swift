@@ -4,7 +4,9 @@ enum ToolKind: String, CaseIterable {
     case select, arrow, text, rectangle, ellipse, line, highlight
     case obscure, stamp, pen, spotlight, sticker, image, crop
 
-    var displayName: String {
+    @MainActor var displayName: String { Loc.t(englishName) }
+
+    var englishName: String {
         switch self {
         case .select: "Select"
         case .arrow: "Arrow"
@@ -151,5 +153,7 @@ enum ToolIcons {
         1.5)
     static let copy = Glyph.stroke("M7,7 H16 V17 H7 Z M7,10 H4 V3 H13 V7", 1.6, size: CGSize(width: 20, height: 19))
     static let save = Glyph.stroke("M10,3 V12 M6.5,8.5 L10,12 L13.5,8.5 M4,14.5 V16 H16 V14.5", 1.6, size: CGSize(width: 20, height: 18))
+    static let pin = Glyph.stroke("M11.5,2.5 L17.5,8.5 M13,4 L9,8 L5.5,8.5 L11.5,14.5 L12,11 L16,7 M8.5,11.5 L3,17", 1.6)
+    static let ocr = Glyph.stroke("M3,7 V3 H7 M13,3 H17 V7 M17,13 V17 H13 M7,17 H3 V13 M7,7 H13 M10,7 V14", 1.6)
     static let share = Glyph.stroke("M10,12 V3 M6.8,5.8 L10,2.6 L13.2,5.8 M5,9 H4 V17 H16 V9 H15", 1.6, size: CGSize(width: 20, height: 19))
 }

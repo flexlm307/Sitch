@@ -93,6 +93,10 @@ struct GrabArea: NSViewRepresentable {
                 menu.addItem(ClosureMenuItem(L("Mark up with macOS")) { line.markupWithSystem(id) })
                 if line.canRevert(id) { menu.addItem(ClosureMenuItem(L("Revert to original")) { line.revert(id) }) }
                 menu.addItem(ClosureMenuItem(L("Copy text")) { line.copyText(id) })
+                menu.addItem(ClosureMenuItem(L("Pin to screen")) { line.pinToScreen(id) })
+                if line.canRestoreMarkdown() {
+                    menu.addItem(ClosureMenuItem(L("Restore as Markdown (MinerU)")) { line.restoreMarkdown(id) })
+                }
             }
             menu.addItem(ClosureMenuItem(L("Show in Finder")) { line.reveal(id) })
             let keep = ClosureMenuItem(L("Keep on the line")) { line.togglePin(id) }

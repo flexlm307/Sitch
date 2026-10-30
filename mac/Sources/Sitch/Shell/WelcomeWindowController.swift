@@ -55,9 +55,9 @@ final class WelcomeWindowController: NSWindowController, NSWindowDelegate {
         let icon = NSImageView(image: NSApp.applicationIconImage ?? NSImage())
         icon.widthAnchor.constraint(equalToConstant: 44).isActive = true
         icon.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        let title = NSTextField(labelWithString: "Sitch is ready")
+        let title = NSTextField(labelWithString: Loc.t("Sitch is ready"))
         title.font = .systemFont(ofSize: 20, weight: .semibold)
-        let sub = NSTextField(labelWithString: "Capture. Annotate. Share.")
+        let sub = NSTextField(labelWithString: Loc.t("Capture. Annotate. Share."))
         sub.font = .systemFont(ofSize: 13)
         sub.textColor = .secondaryLabelColor
         let titles = NSStackView(views: [title, sub])
@@ -68,15 +68,15 @@ final class WelcomeWindowController: NSWindowController, NSWindowDelegate {
         header.spacing = 14
 
         permissionStatus = line("")
-        permissionButton = NSButton(title: "Grant Screen Recording…", target: nil, action: nil)
+        permissionButton = NSButton(title: Loc.t("Grant Screen Recording…"), target: nil, action: nil)
         bind(permissionButton) { [weak self] in self?.grantPermission() }
 
-        let settings = NSButton(title: "Settings", target: nil, action: nil)
+        let settings = NSButton(title: Loc.t("Settings"), target: nil, action: nil)
         bind(settings) { [weak self] in
             AppController.shared.showSettings()
             self?.close()
         }
-        let capture = NSButton(title: "Capture now  (\(hotkey))", target: nil, action: nil)
+        let capture = NSButton(title: Loc.f("Capture now  ({0})", hotkey), target: nil, action: nil)
         capture.keyEquivalent = "\r"
         bind(capture) { [weak self] in
             self?.close()
@@ -94,22 +94,22 @@ final class WelcomeWindowController: NSWindowController, NSWindowDelegate {
 
         var rows: [NSView] = [
             header,
-            line("Press  \(hotkey)  to capture — drag a region or click a window.", bold: true),
-            line("Sitch lives in your menu bar: click the pink arrow for window and full-screen "
-                 + "capture, quick capture to clipboard or file, and Settings."),
-            line("Every capture is copied to your clipboard automatically, ready to paste."),
+            line(Loc.f("Press  {0}  to capture — drag a region or click a window.", hotkey), bold: true),
+            line(Loc.t("Sitch lives in your menu bar: click the pink arrow for window and full-screen "
+                 + "capture, quick capture to clipboard or file, and Settings.")),
+            line(Loc.t("Every capture is copied to your clipboard automatically, ready to paste.")),
             permissionStatus,
             permissionButton,
         ]
         if LoginItemOffer.isDue {
             // Pre-checked offer, applied when the welcome closes (macOS also notifies when a
             // login item is added); unchecking it is the "no".
-            let box = NSButton(checkboxWithTitle: "Open Sitch automatically when you log in", target: nil, action: nil)
+            let box = NSButton(checkboxWithTitle: Loc.t("Open Sitch automatically when you log in"), target: nil, action: nil)
             box.state = .on
             loginCheckbox = box
             rows.append(box)
         } else if LoginItemOffer.isRunningFromDiskImage {
-            rows.append(line("To finish installing, drag Sitch into your Applications folder, then open it from there.",
+            rows.append(line(Loc.t("To finish installing, drag Sitch into your Applications folder, then open it from there."),
                              bold: true))
         }
         rows.append(buttons)
@@ -142,12 +142,12 @@ final class WelcomeWindowController: NSWindowController, NSWindowDelegate {
 
     private func refreshPermission() {
         if CGPreflightScreenCaptureAccess() {
-            permissionStatus.stringValue = "✓ Screen Recording is allowed."
+            permissionStatus.stringValue = Loc.t("✓ Screen Recording is allowed.")
             permissionButton.isHidden = true
         } else {
-            permissionStatus.stringValue = "Sitch needs the Screen Recording permission to capture. "
+            permissionStatus.stringValue = Loc.t("Sitch needs the Screen Recording permission to capture. "
                 + "Turn on Sitch in System Settings → Privacy & Security → Screen & System Audio Recording, "
-                + "then quit and reopen Sitch — macOS only applies the change after a relaunch."
+                + "then quit and reopen Sitch — macOS only applies the change after a relaunch.")
             permissionButton.isHidden = false
         }
         sizeToContent()

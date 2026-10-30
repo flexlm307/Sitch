@@ -23,7 +23,7 @@ final class AppController {
     /// CONTRACT. The screenshot line (merged from Snapline); nil while it is off or Snapline runs.
     private(set) var shelf: ShelfController?
 
-    private static let hkCapture = 1, hkRecapture = 2, hkQuickCopy = 3
+    private static let hkCapture = 1, hkRecapture = 2, hkQuickCopy = 3, hkPin = 4, hkScroll = 5, hkRecord = 6
 
     /// CONTRACT. The global hotkeys in Settings/menu order; `name` labels them in Settings and
     /// in conflict messages.
@@ -31,6 +31,9 @@ final class AppController {
         (hkCapture, "Capture", \.captureHotkey),
         (hkRecapture, "Recapture last region", \.recaptureHotkey),
         (hkQuickCopy, "Capture to clipboard", \.quickCopyHotkey),
+        (hkPin, "Pin clipboard image", \.pinHotkey),
+        (hkScroll, "Scrolling capture", \.scrollHotkey),
+        (hkRecord, "Record screen", \.recordHotkey),
     ]
 
     /// CONTRACT.
@@ -39,6 +42,7 @@ final class AppController {
     func start(arguments: [String]) {
         (settings, firstRun) = SettingsStore.load()
         applyTheme()
+        ShelfController.hostLanguage = Loc.isChinese ? "zh" : "en"
         NSApp.mainMenu = MainMenu.build()
         menuBar = MenuBarController()
         hotkeys.onPressed = { [weak self] id in
@@ -46,6 +50,9 @@ final class AppController {
             case Self.hkCapture: self?.captureRegion()
             case Self.hkRecapture: self?.recaptureLast()
             case Self.hkQuickCopy: self?.quickCapture(toClipboard: true)
+            case Self.hkPin: Pins.pinClipboard()
+            case Self.hkScroll: self?.scrollCapture()
+            case Self.hkRecord: self?.record()
             default: break
             }
         }
@@ -93,7 +100,7 @@ final class AppController {
             NSApp.activate()
         } else {
             let key = HotkeyChord.parse(settings.captureHotkey)?.symbols ?? settings.captureHotkey
-            Toast.show("Sitch is already running in the menu bar.\nPress \(key) to capture.")
+            Toast.show(Loc.f("Sitch is already running in the menu bar.\nPress {0} to capture.", key))
         }
     }
 
@@ -150,12 +157,36 @@ final class AppController {
             // Clipboard held by another app (or "to file" was asked for) — don't lose the frame.
             do {
                 let url = try Exporters.quickSave(result.image, pointScale: result.pointScale)
-                Toast.show(toClipboard ? "Clipboard busy — saved \(url.lastPathComponent) instead."
-                                       : "Saved \(url.lastPathComponent)", thumbnail: result.image)
+                Toast.show(Loc.f(toClipboard ? "Clipboard busy — saved {0} instead." : "Saved {0}", url.lastPathComponent),
+                           thumbnail: result.image)
             } catch {
-                Toast.show("Couldn't save the capture.\n\(error.localizedDescription)")
+                Toast.show(Loc.t("Couldn't save the capture.") + "\n\(error.localizedDescription)")
             }
         }
+    }
+
+    /// Pick the region (drag, or click a snapped element / window), then scroll it.
+    func scrollCapture() {
+        guard !ScrollCaptureSession.isActive, !RecordingSession.isActive else { return }
+        capture.startInteractive(.region) { result in
+            guard let r = result.sourceRect, let d = DisplayGeometry.mostOverlapping(r, in: DisplayGeometry.all()) else { return }
+            ScrollCaptureSession.start(rect: r.intersection(d.frame), display: d)
+        }
+    }
+
+    /// Pick the region, then record it (GIF or MP4; nil = the format in Settings).
+    func record(format: String? = nil) {
+        guard !RecordingSession.isActive, !ScrollCaptureSession.isActive else { return }
+        let format = format ?? settings.recordFormat
+        capture.startInteractive(.region) { result in
+            guard let r = result.sourceRect, let d = DisplayGeometry.mostOverlapping(r, in: DisplayGeometry.all()) else { return }
+            RecordingSession.start(rect: r.intersection(d.frame), display: d, format: format)
+        }
+    }
+
+    /// A finished scrolling capture goes where any capture goes (clipboard, editor, line).
+    func finishScrollCapture(_ image: CGImage, sourceRect: CGRect, pointScale: CGFloat) {
+        route(CaptureResult(image: image, kind: .region, region: nil, sourceRect: sourceRect, pointScale: pointScale))
     }
 
     private func startCapture(_ mode: CaptureMode) {
@@ -185,10 +216,10 @@ final class AppController {
         if settings.afterSave {
             do {
                 let url = try Exporters.quickSave(result.image, pointScale: result.pointScale)
-                Toast.show("Saved \(url.lastPathComponent)", thumbnail: result.image)
+                Toast.show(Loc.f("Saved {0}", url.lastPathComponent), thumbnail: result.image)
                 handled = true
             } catch {
-                Toast.show("Couldn't save the capture.\n\(error.localizedDescription)")
+                Toast.show(Loc.t("Couldn't save the capture.") + "\n\(error.localizedDescription)")
             }
         }
         if settings.afterHang, let shelf {
@@ -196,9 +227,9 @@ final class AppController {
             handled = true
         }
         if let into {
-            into.addTab(EditorWindowController(image: result.image, title: "Untitled", pointScale: result.pointScale))
+            into.addTab(EditorWindowController(image: result.image, title: Loc.t("Untitled"), pointScale: result.pointScale))
         } else if settings.afterShowEditor || !handled {
-            openEditor(image: result.image, title: "Untitled", pointScale: result.pointScale, sourceRect: result.sourceRect)
+            openEditor(image: result.image, title: Loc.t("Untitled"), pointScale: result.pointScale, sourceRect: result.sourceRect)
         } else {
             returnFocusIfIdle()
         }
@@ -231,8 +262,8 @@ final class AppController {
     func openImage(at url: URL, saveBack: Bool = false) {
         guard let (image, scale) = Self.loadImage(url) else {
             let alert = NSAlert()
-            alert.messageText = "Couldn't open \(url.lastPathComponent)"
-            alert.informativeText = "The file isn't an image Sitch can read."
+            alert.messageText = Loc.f("Couldn't open {0}", url.lastPathComponent)
+            alert.informativeText = Loc.t("The file isn't an image Sitch can read.")
             alert.runModal()
             return
         }
@@ -290,11 +321,11 @@ final class AppController {
             guard let chord = HotkeyChord.parse(settings[keyPath: slot.chord]) else { continue }
             // A settings file from before the recorder refused duplicates: first slot wins.
             if let owner = taken[chord] {
-                Toast.show("\(slot.name) shortcut \(chord.symbols) is already used by \(owner).")
+                Toast.show(Loc.f("{0} shortcut {1} is already used by {2}.", Loc.t(slot.name), chord.symbols, Loc.t(owner)))
             } else if hotkeys.register(id: slot.id, chord) {
                 taken[chord] = slot.name
             } else {
-                Toast.show("\(slot.name) shortcut \(chord.symbols) is in use by another app.")
+                Toast.show(Loc.f("{0} shortcut {1} is in use by another app.", Loc.t(slot.name), chord.symbols))
             }
         }
         menuBar?.refreshShortcuts()
@@ -340,6 +371,8 @@ final class AppController {
         for editor in editors { editor.closeWithoutPrompt() }
         // Puts the macOS screenshot settings back if the line was handling screenshots.
         shelf?.stop()
+        RapidOcr.stop()
+        MinerU.stop()
         return true
     }
 
@@ -360,6 +393,13 @@ final class AppController {
         line.onNewCapture = { [weak self] in self?.captureRegion() }
         line.onSitchSettings = { [weak self] in self?.showSettings() }
         line.onQuit = { NSApp.terminate(nil) }
+        line.onPin = { url in Pins.pinFile(url) }
+        line.onRestoreMarkdown = { url in MinerU.restoreFile(url) }
+        line.canRestoreMarkdown = { MinerU.configured }
+        line.readText = { url in
+            guard let (image, _) = Self.loadImage(url) else { return nil }
+            return try? await Ocr.read(image)
+        }
         shelf = line
     }
 }

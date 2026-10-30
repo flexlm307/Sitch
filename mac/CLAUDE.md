@@ -51,6 +51,9 @@ since v0.2.0. `SitchCore` (library) holds the model + renderer and is covered by
 controller split by concern, DocumentCanvas, chrome controls, pickers, SVG path parser for the
 Windows glyph strings) · `Export` (encoders, clipboard, temp files, share) · `Shell` (toast,
 countdown, Carbon hotkeys, login item, screenshot watcher, Settings, Welcome).
+UI words go through `Loc.t` / `Loc.f("… {0}", x)` (English keys, Chinese in `Shell/LocTable.swift`);
+ChromeButton, makeLabel, ActionMenuItem, Toast and the Settings helpers already apply it. Python,
+FFmpeg and MinerU are optional external tools found by `Export/ExternalTools` (see ARCHITECTURE.md).
 
 ## Signing & release
 No entitlements file: capture is gated by the Screen Recording privacy grant, not an
