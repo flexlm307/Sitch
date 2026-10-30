@@ -117,6 +117,14 @@ capture orchestration, window management), `app.manifest` (PMv2), `Sitch.csproj`
   `OnDpiChanged`). Sources: F3 in the overlay (`CaptureController.PinTarget` pins what a click would
   take, in place), F3 / the pin button in the editor, the line's "Pin to screen", and the global
   `PinHotkey` (clipboard image). Wheel zooms, Ctrl+wheel sets opacity, Esc / double-click closes.
+- **Scrolling capture** (`Shell/ScrollCaptureSession.cs` + `Capture/ScrollStitcher.cs`): pick a region
+  (`ScrollHotkey` / tray, or S on a snapped target in the overlay), the user scrolls it, frames are grabbed
+  every 80 ms. `ScrollStitcher` finds rows that didn't move at the top/bottom on full pixels (sticky
+  header / footer appear once), shortlists offsets on per-row signatures (local minima only), picks
+  among them on full pixels — signatures alone mistake similar text lines one line apart. Assumes
+  whole-pixel scrolling (browsers, editors); fractional WPF scrolling re-rasterizes text and can't match
+  exactly. A click-through frame sits just outside the region; the bar is WS_EX_NOACTIVATE so focus stays
+  in the scrolled app.
 - **Keyboard capture:** arrows define/nudge the selection, Shift+arrows resize, Ctrl = 10px steps,
   Enter confirms, **Esc abandons the whole capture** (single press — `OverlayWindow.OnKeyDown` →
   `CaptureController.Cancel`; the overlay under the cursor takes keyboard focus in

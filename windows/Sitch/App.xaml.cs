@@ -18,6 +18,7 @@ public partial class App : Application
     public const int HkRecapture = 2;
     public const int HkQuickCopy = 3;
     public const int HkPin = 4;
+    public const int HkScroll = 5;
 
     /// <summary>The global hotkeys in Settings/tray order; Name labels them in conflict messages.</summary>
     public static readonly (int Id, string Name, Func<AppSettings, string> Get)[] HotkeySlots =
@@ -26,6 +27,7 @@ public partial class App : Application
         (HkRecapture, "Recapture last region", s => s.RecaptureHotkey),
         (HkQuickCopy, "Capture to clipboard", s => s.QuickCopyHotkey),
         (HkPin, "Pin clipboard image", s => s.PinHotkey),
+        (HkScroll, "Scrolling capture", s => s.ScrollHotkey),
     ];
 
     private SingleInstance? _instance;
@@ -184,6 +186,7 @@ public partial class App : Application
             case HkRecapture: RecaptureLast(); break;
             case HkQuickCopy: QuickCapture(toClipboard: true); break;
             case HkPin: Pins.PinClipboard(); break;
+            case HkScroll: ScrollCapture(); break;
         }
     }
 
@@ -247,6 +250,20 @@ public partial class App : Application
             if (Settings.AfterHang) Shelf?.HangBitmap(result.Bitmap, result.SourceScreenRect);
         });
     }
+
+    /// <summary>Pick the region (drag, or click a snapped element / window), then scroll it.</summary>
+    public void ScrollCapture()
+    {
+        if (ScrollCaptureSession.IsActive) return;
+        _capture!.StartInteractive(CaptureMode.Region, result =>
+        {
+            if (result.SourceScreenRect is { } r) ScrollCaptureSession.Start(new Int32Rect(r.X, r.Y, r.Width, r.Height));
+        });
+    }
+
+    /// <summary>A finished scrolling capture goes where any capture goes (clipboard, editor, line).</summary>
+    public void FinishScrollCapture(BitmapSource image, PixelRect source) =>
+        RouteCapture(new CaptureResult(image, CaptureMode.Region, null, source));
 
     private void StartCapture(CaptureMode mode)
     {

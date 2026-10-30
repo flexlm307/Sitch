@@ -154,6 +154,10 @@ public sealed class OverlayWindow : Window
                 _controller.PinTarget();
                 e.Handled = true;
                 break;
+            case Key.S when Keyboard.Modifiers == ModifierKeys.None:
+                _controller.ScrollTarget();
+                e.Handled = true;
+                break;
             case Key.C when Keyboard.Modifiers is ModifierKeys.None or ModifierKeys.Shift:
                 _controller.CopyColor(asRgb: shift);
                 e.Handled = true;

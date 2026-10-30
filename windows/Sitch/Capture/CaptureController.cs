@@ -234,6 +234,18 @@ public sealed class CaptureController
         Shell.Pins.Pin(bmp, new PixelRect(r.X, r.Y, r.Width, r.Height));
     }
 
+    /// <summary>S in the overlay: start a scrolling capture of what a click would take.</summary>
+    internal void ScrollTarget()
+    {
+        Int32Rect? rect = HasSelection ? SelectionRect
+            : HoveredElement?.Bounds ?? (_mode != CaptureMode.FullScreen ? HoveredWindow?.Bounds : null);
+        if (rect is not { } r) return;
+        r = ClipToScreen(r);
+        CloseOverlays();
+        Cleanup();
+        Shell.ScrollCaptureSession.Start(r);
+    }
+
     /// <summary>The frozen frame's colour at a physical point, or null off-screen.</summary>
     internal System.Windows.Media.Color? PixelAt(Point physical)
     {

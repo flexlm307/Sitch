@@ -68,6 +68,8 @@ public partial class SettingsWindow : Window
         WireHotkeyRecorder(QuickCopyBox, App.HkQuickCopy, chord => { s.QuickCopyHotkey = chord; Save(); });
         PinBox.Text = s.PinHotkey;
         WireHotkeyRecorder(PinBox, App.HkPin, chord => { s.PinHotkey = chord; Save(); });
+        ScrollBox.Text = s.ScrollHotkey;
+        WireHotkeyRecorder(ScrollBox, App.HkScroll, chord => { s.ScrollHotkey = chord; Save(); });
 
         FolderBox.Text = s.DefaultSaveFolder;
         FolderBox.LostFocus += (_, _) => { s.DefaultSaveFolder = FolderBox.Text.Trim(); Save(); };

@@ -25,6 +25,8 @@ public class AppSettings
     public string QuickCopyHotkey { get; set; } = "Ctrl+Alt+Shift+C";
     /// <summary>Pin the clipboard image on top of everything (Shell.Pins).</summary>
     public string PinHotkey { get; set; } = "Ctrl+Alt+P";
+    /// <summary>Scrolling capture: pick a region, scroll it, get one long image.</summary>
+    public string ScrollHotkey { get; set; } = "Ctrl+Alt+Shift+S";
     public string DefaultSaveFolder { get; set; } = "";
     /// <summary>"png" | "jpg" | "pdf" | "tiff"</summary>
     public string DefaultFormat { get; set; } = "png";

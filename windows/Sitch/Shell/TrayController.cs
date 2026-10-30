@@ -47,6 +47,8 @@ public sealed class TrayController : IDisposable
         full.Items.Add(new MenuItem { Header = "…" }); // placeholder so the submenu arrow shows
         menu.Items.Add(full);
 
+        var scrollItem = Item($"{Loc.T("Scrolling Capture")}\t{App.Settings.ScrollHotkey}", () => App.Current.ScrollCapture());
+        menu.Items.Add(scrollItem);
         var recaptureItem = Item($"{Loc.T("Recapture Last Region")}\t{App.Settings.RecaptureHotkey}", () => App.Current.RecaptureLast());
         menu.Items.Add(recaptureItem);
         var quickCopyItem = Item($"{Loc.T("Quick Capture → Clipboard")}\t{App.Settings.QuickCopyHotkey}", () => App.Current.QuickCapture(toClipboard: true));
@@ -55,6 +57,7 @@ public sealed class TrayController : IDisposable
         {
             captureItem.Header = $"{Loc.T("Capture Region")}\t{App.Settings.CaptureHotkey}";
             recaptureItem.Header = $"{Loc.T("Recapture Last Region")}\t{App.Settings.RecaptureHotkey}";
+            scrollItem.Header = $"{Loc.T("Scrolling Capture")}\t{App.Settings.ScrollHotkey}";
             quickCopyItem.Header = $"{Loc.T("Quick Capture → Clipboard")}\t{App.Settings.QuickCopyHotkey}";
         };
         menu.Items.Add(new Separator());
