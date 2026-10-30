@@ -88,13 +88,15 @@ Full undo/redo, rotate/flip (annotations follow), and dark, light or system them
 - Native **share sheet** on both platforms
 - Never saves silently — you always choose where files go
 
-### Works with Snapline
-[Snapline](https://github.com/flexlm307/snapline) hangs your screenshots on a line along the top
-of the screen. The two work together, on Windows and Mac:
-- Captures Sitch **saves** (Settings → After capture → Save) hang on the line; so do captures it
-  **copies**, while Snapline's *Catch clipboard captures* is on (default on Windows, off on Mac)
-- **Edit in Sitch** on a photo's right-click menu opens it in Sitch; **Save (Ctrl+S / ⌘S)** writes
-  back into that file and the photo on the line updates
+### The screenshot line
+Every capture also hangs on a line just above your screen (formerly the separate
+[Snapline](https://github.com/flexlm307/snapline) app, now built in). Rest the pointer against the
+top edge, or press **Ctrl+Alt+T / ⌃⌥T**, and the line comes down:
+- **Click** a photo to copy it, **drag** it into an app or a folder, **press and hold** to open it in
+  Sitch's editor — Save (Ctrl+S / ⌘S) writes the marks back and the photo updates
+- **Revert to original**, **Copy text** (on-device OCR), **Keep on the line**, sticky **notes**
+- System screenshots (Win+PrtScn, ⇧⌘4…) and folders you choose hang too
+- Turn it off, or stop captures hanging, in Settings → Capture; *Line settings…* holds the rest
 
 ## Download & install
 

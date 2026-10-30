@@ -43,6 +43,8 @@ since v0.2.0. `SitchCore` (library) holds the model + renderer and is covered by
   terminal inherits the terminal's Screen Recording grant; `open`-launching it uses its own.
 
 ## Layout
+`Sources/SitchShelf` (the screenshot line merged from Snapline; Swift 5 mode, public surface is
+`ShelfController` only; strings in `Resources/*.lproj/Line.strings`) ·
 `Sources/SitchCore` (model, annotations, Renderer, EffectRenderer, settings, HotkeyChord, demo) ·
 `Sources/Sitch/App` (AppController = Windows App.xaml.cs, menus, single instance, Theme tokens) ·
 `Capture` (ScreenCaptureKit freeze, per-display overlays, window list) · `Editor` (window

@@ -23,7 +23,8 @@ Versioning & release and Guardrails cover both.
 - .NET 10 WPF, C#, TFM `net10.0-windows10.0.19041.0`, x64. Windows 10 1903+ / 11.
 - Single project, **no `.sln`** — always target `windows/Sitch/Sitch.csproj`.
 - Only two NuGet deps: `H.NotifyIcon.Wpf` (tray) and `PDFsharp-wpf` (PDF). All Win32 P/Invoke is
-  hand-written in `windows/Sitch/Capture/Native.cs` — there is no CsWin32.
+  hand-written in `windows/Sitch/Capture/Native.cs` (and `Shelf/Interop/Native.cs` for the line) —
+  there is no CsWin32.
 
 ## Build / run / publish
 - Build: `dotnet build windows/Sitch/Sitch.csproj`
@@ -57,6 +58,9 @@ Versioning & release and Guardrails cover both.
   blur/pixelate never smears an arrow. Redactions flatten to pixels only at export.
 - **Tray-resident.** `ShutdownMode=OnExplicitShutdown` (App.xaml): closing all editors does NOT
   quit; the app stays in the tray. Quit runs `App.QuitRequested()` (prompts dirty tabs).
+- **Screenshot line** (`Shelf/`, Mac `Sources/SitchShelf`): Snapline merged in. Captures hang via
+  `ShelfController.HangBitmap`; the line's Mark up opens Sitch's editor with save-back. It keeps its
+  own settings, Arabic strings and scoped menu theme — see ARCHITECTURE.md before touching it.
 - **Single instance** (`Shell/SingleInstance.cs`) and **theming** (`App.xaml`
   `MergedDictionaries[0]` is the swappable active theme, replaced by `ThemeManager`).
 

@@ -73,6 +73,17 @@ capture orchestration, window management), `app.manifest` (PMv2), `Sitch.csproj`
 - **`Themes/`** — `Common.xaml` (theme-independent styles/templates), `Dark.xaml`, `Light.xaml`
   (brush palettes). `App.xaml` merges the active theme at `MergedDictionaries[0]` (the swappable
   slot) + `Common.xaml` at `[1]`.
+- **`Shelf/`** — the screenshot line, merged from the standalone Snapline app (MIT; notice in
+  `LICENSE`). `ShelfController` (started by `App.UpdateShelf()` while `LineEnabled` and Snapline
+  itself isn't running) owns the line window, its Ctrl+Alt+T hot key (own message-only window), the
+  folder/clipboard watchers and capture flights. `App.RouteCapture` calls `HangBitmap` with the
+  capture's physical source rect; `Line.Edit` opens `App.OpenImageFile(path, saveBack: true)` and the
+  editor's Save calls `FileSaved`. Its own settings/log/caught captures live in
+  `%LOCALAPPDATA%\Sitch\Line` (copied from `%LOCALAPPDATA%\Snapline` once); its strings are
+  English + Arabic (`UI/Strings.cs`). Its menu styles (`UI/Theme.xaml`) are scoped to its own menus
+  via `Theme.Scope`, never merged into `App.Resources`. Exceptions with `Sitch.Shelf.` frames are
+  logged and swallowed by `App.DispatcherUnhandledException`, as Snapline did, so the 30 Hz tick
+  can't take Sitch down.
 - **`Assets/`** — `sitch.ico` (app/tray/window icon).
 
 ## Capture flow
@@ -154,6 +165,14 @@ invariant above holds on the Mac too. Same module names; differences that matter
 - **Shell** — menu-bar `NSStatusItem` (tray), Carbon `RegisterEventHotKey` (no Accessibility
   prompt), `SMAppService` login item, native window tabs instead of the in-window tab strip,
   distributed notification instead of the named pipe for single-instance arg forwarding.
+- **Screenshot line** — `Sources/SitchShelf`, a separate target in the Swift 5 language mode
+  Snapline was written in; Sitch uses only the public `ShelfController` (hooks for edit, capture,
+  settings, quit). Its Carbon hot key checks its own signature so Sitch's hot keys pass through;
+  its Appearance applies to its own panel only; Sitch's clipboard copies carry an
+  `io.github.phalladar.Sitch.copy` marker it skips. Strings ship in `Contents/Resources/Line/`
+  (copied by `build-app.sh`, not top-level `.lproj`s). Settings in
+  `Application Support/Sitch/Line`, copied from Snapline's once. `stop()` restores the macOS
+  screenshot settings when Sitch quits.
 - **Permission** — Screen Recording (TCC) gates every capture; the grant is tied to the code
   signature, so ad-hoc rebuilds lose it (sign dev builds with the Developer ID).
 
