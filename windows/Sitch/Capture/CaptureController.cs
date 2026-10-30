@@ -218,6 +218,35 @@ public sealed class CaptureController
         return new Int32Rect(x1, y1, Math.Max(1, x2 - x1), Math.Max(1, y2 - y1));
     }
 
+    /// <summary>The frozen frame's colour at a physical point, or null off-screen.</summary>
+    internal System.Windows.Media.Color? PixelAt(Point physical)
+    {
+        if (_frozen is null) return null;
+        int x = (int)Math.Floor(physical.X) - _frozenBounds.X, y = (int)Math.Floor(physical.Y) - _frozenBounds.Y;
+        if (x < 0 || y < 0 || x >= _frozen.PixelWidth || y >= _frozen.PixelHeight) return null;
+        // BitBlt frames are Bgr32; anything else is converted so the byte order below holds.
+        var source = _frozen.Format == System.Windows.Media.PixelFormats.Bgr32 || _frozen.Format == System.Windows.Media.PixelFormats.Bgra32
+            ? _frozen
+            : new FormatConvertedBitmap(_frozen, System.Windows.Media.PixelFormats.Bgra32, null, 0);
+        var px = new byte[4];
+        source.CopyPixels(new Int32Rect(x, y, 1, 1), px, 4, 0);
+        return System.Windows.Media.Color.FromRgb(px[2], px[1], px[0]);
+    }
+
+    /// <summary>C in the overlay: the colour under the pointer goes to the clipboard and the capture ends.</summary>
+    internal void CopyColor(bool asRgb)
+    {
+        if (_mode != CaptureMode.Region || !App.Settings.ShowMagnifier || PixelAt(PointerPhysical) is not { } c) return;
+        var text = asRgb ? $"{c.R}, {c.G}, {c.B}" : $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+        Cancel();
+        try
+        {
+            Clipboard.SetText(text);
+            Shell.NotifyPopup.Show(Shell.Loc.F("Copied {0}", text));
+        }
+        catch { Shell.NotifyPopup.Show(Shell.Loc.T("Clipboard is busy — try again.")); }
+    }
+
     internal void Cancel()
     {
         CloseOverlays();

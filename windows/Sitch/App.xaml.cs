@@ -102,6 +102,7 @@ public partial class App : Application
         _hotkeys?.Dispose();
         _tray?.Dispose();
         _instance?.Dispose();
+        Sitch.Shelf.Core.RapidOcr.Stop();
         base.OnExit(e);
     }
 

@@ -267,6 +267,11 @@
                               Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.5" Width="20" Height="20"
                               Stretch="None" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                     </Button>
+                    <Button x:Name="BtnOcr" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Extract text (Ctrl+Shift+O)'}">
+                        <Path Data="M3,7 V3 H7 M13,3 H17 V7 M17,13 V17 H13 M7,17 H3 V13 M7,7 H13 M10,7 V14"
+                              Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.6" Width="20" Height="20"
+                              Stretch="None" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    </Button>
                     <Button x:Name="BtnCopy" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Copy image (Ctrl+Shift+C)'}">
                         <Path Data="M7,7 H16 V17 H7 Z M7,10 H4 V3 H13 V7"
                               Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.6" Width="20" Height="19"

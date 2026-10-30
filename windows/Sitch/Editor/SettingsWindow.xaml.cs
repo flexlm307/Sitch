@@ -15,8 +15,7 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
-        Icon = new System.Windows.Media.Imaging.BitmapImage(
-            new Uri("pack://application:,,,/Assets/sitch.ico"));
+        Icon = Shelf.UI.Brand.Icon;
 
         TabGeneral.Checked += (_, _) => ShowPage(PageGeneral);
         TabCapture.Checked += (_, _) => ShowPage(PageCapture);
@@ -94,6 +93,12 @@ public partial class SettingsWindow : Window
 
         ChkSnap.IsChecked = s.SnapToElements;
         ChkSnap.Click += (_, _) => { s.SnapToElements = ChkSnap.IsChecked == true; Save(); };
+        (s.OcrEngine == "RapidOCR" ? OcrRapid : OcrWindows).IsChecked = true;
+        OcrWindows.Checked += (_, _) => { if (_loading) return; s.OcrEngine = "Windows"; Save(); Shelf.Core.RapidOcr.Stop(); };
+        OcrRapid.Checked += (_, _) => { if (_loading) return; s.OcrEngine = "RapidOCR"; Save(); };
+
+        ChkMagnifier.IsChecked = s.ShowMagnifier;
+        ChkMagnifier.Click += (_, _) => { s.ShowMagnifier = ChkMagnifier.IsChecked == true; Save(); };
 
         ChkAfterShow.IsChecked = s.AfterShowEditor;
         ChkAfterCopy.IsChecked = s.AfterCopy;

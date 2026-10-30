@@ -150,6 +150,10 @@ public sealed class OverlayWindow : Window
             case Key.Right: _controller.NudgeSelection(step, 0, shift); e.Handled = true; break;
             case Key.Up: _controller.NudgeSelection(0, -step, shift); e.Handled = true; break;
             case Key.Down: _controller.NudgeSelection(0, step, shift); e.Handled = true; break;
+            case Key.C when Keyboard.Modifiers is ModifierKeys.None or ModifierKeys.Shift:
+                _controller.CopyColor(asRgb: shift);
+                e.Handled = true;
+                break;
         }
     }
 
@@ -167,12 +171,19 @@ public sealed class OverlayWindow : Window
         private static readonly Brush DimBrush = new SolidColorBrush(Color.FromArgb(0x73, 0, 0, 0));
         private static readonly Pen SelectionPen = new(new SolidColorBrush(Color.FromRgb(0xFF, 0x33, 0x66)), 1.5);
         private static readonly Brush ReadoutBg = new SolidColorBrush(Color.FromArgb(0xD9, 0x1E, 0x1E, 0x20));
+        private static readonly Pen GridPen = new(new SolidColorBrush(Color.FromArgb(0x24, 0xFF, 0xFF, 0xFF)), 1);
+        private static readonly Brush DimText = new SolidColorBrush(Color.FromRgb(0xD2, 0xD2, 0xD2));
+
+        // Magnifier: a 15x15 physical-pixel sample, 8 DIP per pixel.
+        private const int Grid = 15, Cell = 8, Pad = 8;
 
         static OverlayVisual()
         {
             DimBrush.Freeze();
             SelectionPen.Freeze();
             ReadoutBg.Freeze();
+            GridPen.Freeze();
+            DimText.Freeze();
         }
 
         private readonly OverlayWindow _win;
@@ -240,6 +251,75 @@ public sealed class OverlayWindow : Window
                 dc.DrawRectangle(DimBrush, null, full);
                 if (c.Mode == CaptureMode.Region)
                     DrawCrosshair(dc, full);
+            }
+
+            if (c.Mode == CaptureMode.Region && App.Settings.ShowMagnifier)
+                DrawMagnifier(dc, full);
+        }
+
+        /// <summary>
+        /// Zoomed view of the frozen frame around the pointer plus that pixel's colour (C copies HEX,
+        /// Shift+C RGB). Samples physical pixels, so the centre cell is exactly the pixel under the
+        /// pointer at any scale factor. Only the monitor holding the pointer draws it.
+        /// </summary>
+        private void DrawMagnifier(DrawingContext dc, Rect full)
+        {
+            var c = _win._controller;
+            var p = c.PointerPhysical;
+            var local = _win.ToLocalDip(p.X, p.Y);
+            if (!full.Contains(local) || c.PixelAt(p) is not { } color) return;
+
+            // Clamp the sample inside the frame; the centre cell then follows the pointer to the edge.
+            int px = (int)Math.Floor(p.X) - _frozenBounds.X, py = (int)Math.Floor(p.Y) - _frozenBounds.Y;
+            int sx = Math.Clamp(px - Grid / 2, 0, Math.Max(0, _frozen.PixelWidth - Grid));
+            int sy = Math.Clamp(py - Grid / 2, 0, Math.Max(0, _frozen.PixelHeight - Grid));
+            var sample = new CroppedBitmap(_frozen, new Int32Rect(sx, sy,
+                Math.Min(Grid, _frozen.PixelWidth - sx), Math.Min(Grid, _frozen.PixelHeight - sy)));
+
+            const double zoom = Grid * Cell;
+            double dpi = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+            string[] lines =
+            [
+                $"({(int)Math.Floor(p.X)}, {(int)Math.Floor(p.Y)})",
+                $"RGB {color.R}, {color.G}, {color.B}",
+                $"#{color.R:X2}{color.G:X2}{color.B:X2}",
+                Shell.Loc.T("C: copy HEX · Shift+C: RGB"),
+            ];
+            var texts = lines.Select((l, i) => new FormattedText(l, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+                new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, i == 2 ? FontWeights.SemiBold : FontWeights.Normal, FontStretches.Normal),
+                i == 3 ? 10.5 : 12, i == 2 ? Brushes.White : DimText, dpi)).ToArray();
+            double width = Math.Max(zoom, texts.Max(t => t.Width) + 17) + Pad * 2;
+            double height = Pad + zoom + 6 + texts.Sum(t => t.Height + 1) + Pad;
+
+            // Down-right of the pointer, flipped to whichever side has room.
+            double x = local.X + 20, y = local.Y + 20;
+            if (x + width > full.Width) x = local.X - 20 - width;
+            if (y + height > full.Height) y = local.Y - 20 - height;
+
+            dc.DrawRoundedRectangle(ReadoutBg, null, new Rect(x, y, width, height), 6, 6);
+            var zoomRect = new Rect(x + Pad, y + Pad, sample.PixelWidth * Cell, sample.PixelHeight * Cell);
+            dc.DrawImage(sample, zoomRect);
+            for (int i = 0; i <= sample.PixelWidth; i++)
+                dc.DrawLine(GridPen, new Point(zoomRect.X + i * Cell, zoomRect.Y), new Point(zoomRect.X + i * Cell, zoomRect.Bottom));
+            for (int i = 0; i <= sample.PixelHeight; i++)
+                dc.DrawLine(GridPen, new Point(zoomRect.X, zoomRect.Y + i * Cell), new Point(zoomRect.Right, zoomRect.Y + i * Cell));
+
+            // Centre cell outlined in a colour that contrasts with the pixel itself.
+            bool light = color.R * 0.299 + color.G * 0.587 + color.B * 0.114 > 128;
+            dc.DrawRectangle(null, new Pen(light ? Brushes.Black : Brushes.White, 2),
+                new Rect(zoomRect.X + (px - sx) * Cell, zoomRect.Y + (py - sy) * Cell, Cell, Cell));
+
+            double ty = y + Pad + zoom + 6;
+            for (int i = 0; i < texts.Length; i++)
+            {
+                double tx = x + Pad;
+                if (i == 2)
+                {
+                    dc.DrawRectangle(new SolidColorBrush(color), new Pen(Brushes.White, 1), new Rect(tx, ty + 3, 11, 11));
+                    tx += 17;
+                }
+                dc.DrawText(texts[i], new Point(tx, ty));
+                ty += texts[i].Height + 1;
             }
         }
 

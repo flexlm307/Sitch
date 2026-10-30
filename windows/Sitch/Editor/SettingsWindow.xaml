@@ -148,6 +148,8 @@
             <CheckBox x:Name="ChkSnap" Content="{sh:T 'Snap to the element under the pointer'}"/>
             <TextBlock Style="{StaticResource Note}"
                        Text="{sh:T 'Hover highlights the control, page or window under the pointer; the mouse wheel steps out to its parent and back. Click to capture it.'}"/>
+            <CheckBox x:Name="ChkMagnifier" Margin="0,10,0,0" Content="{sh:T 'Show a magnifier and the colour under the pointer'}"/>
+            <TextBlock Style="{StaticResource Note}" Text="{sh:T 'While capturing, press C to copy the colour as HEX, Shift+C as RGB.'}"/>
 
             <TextBlock Text="{sh:T 'AFTER CAPTURING'}" Style="{StaticResource SectionHeader}"/>
             <CheckBox x:Name="ChkAfterShow" Content="{sh:T 'Show the editor'}"/>
@@ -198,6 +200,12 @@
                 <TextBlock x:Name="DimLabel" Margin="10,0,0,0" VerticalAlignment="Center"/>
             </StackPanel>
             <TextBlock Style="{StaticResource Note}" Text="{sh:T 'How much everything outside a spotlight is dimmed.'}"/>
+
+            <TextBlock Text="{sh:T 'TEXT RECOGNITION (OCR)'}" Style="{StaticResource SectionHeader}"/>
+            <RadioButton x:Name="OcrWindows" GroupName="ocr" Content="{sh:T 'Windows built-in'}"/>
+            <RadioButton x:Name="OcrRapid" GroupName="ocr" Content="{sh:T 'RapidOCR (better for Chinese and mixed text)'}"/>
+            <TextBlock Style="{StaticResource Note}"
+                       Text="{sh:T 'RapidOCR needs Python and: pip install rapidocr. The first read after starting Sitch takes a few seconds while it loads; if it fails, Windows OCR is used.'}"/>
         </StackPanel>
         </Grid>
         </ScrollViewer>

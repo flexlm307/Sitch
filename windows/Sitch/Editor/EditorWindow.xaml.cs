@@ -84,7 +84,7 @@ public partial class EditorWindow : Window
                 cy >= m.Bounds.Y && cy < m.Bounds.Y + m.Bounds.Height);
         }
         ShowInTaskbar = App.Settings.ShowInTaskbar;
-        Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/sitch.ico"));
+        Icon = Shelf.UI.Brand.Icon; // all .ico sizes: a lone 16 px frame shows tiny on the taskbar
 
         _color = ParseColor(App.Settings.DefaultColor, "#FF3366");
         _fontFamily = App.Settings.FontFamily;
@@ -422,6 +422,7 @@ public partial class EditorWindow : Window
         BtnZoomIn.Click += (_, _) => NudgeZoom(1.25);
         BtnZoomLabel.Click += (_, _) => ShowZoomMenu();
         BtnCopy.Click += (_, _) => CopyImage();
+        BtnOcr.Click += (_, _) => ExtractText();
         BtnSave.Click += (_, _) => ShowSaveMenu();
         BtnShare.Click += (_, _) => ShareImage();
         BtnSettings.Click += (_, _) => App.Current.ShowSettings();
@@ -1243,6 +1244,31 @@ public partial class EditorWindow : Window
             NotifyPopup.Show(Loc.T("Clipboard is busy — try again."));
     }
 
+    private OcrWindow? _ocrWindow;
+
+    /// <summary>Windows' built-in OCR over what the tab shows now (blur/pixelate redactions included).</summary>
+    private async void ExtractText()
+    {
+        CommitTextEdit();
+        if (!Shelf.Core.Ocr.Available)
+        {
+            NotifyPopup.Show(Loc.T("Windows has no OCR language installed. Add one in Settings > Time & language > Language."));
+            return;
+        }
+        NotifyPopup.Show(Loc.T("Reading text…"));
+        string? text;
+        try { text = await Shelf.Core.Ocr.ReadAsync(RenderFinal()); }
+        catch (Exception ex) { NotifyPopup.Show(Loc.T("Could not read text.") + $"\n{ex.Message}"); return; }
+        if (string.IsNullOrWhiteSpace(text)) { NotifyPopup.Show(Loc.T("No text found.")); return; }
+
+        if (_ocrWindow is null)
+        {
+            _ocrWindow = new OcrWindow(this);
+            _ocrWindow.Closed += (_, _) => _ocrWindow = null;
+        }
+        _ocrWindow.ShowText(text);
+    }
+
     private void ShowSaveMenu()
     {
         var menu = new ContextMenu();
@@ -1445,6 +1471,10 @@ public partial class EditorWindow : Window
                 break;
             case Key.C when ctrl && Keyboard.FocusedElement is not TextBox:
                 CopyImage();
+                e.Handled = true;
+                break;
+            case Key.O when ctrl && shift:
+                ExtractText();
                 e.Handled = true;
                 break;
             case Key.S when ctrl:

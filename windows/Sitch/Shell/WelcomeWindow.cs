@@ -21,14 +21,14 @@ public sealed class WelcomeWindow : Window
         Topmost = true;
         SetResourceReference(BackgroundProperty, "Brush.Window");
         SetResourceReference(ForegroundProperty, "Brush.Text");
-        Icon = new BitmapImage(new Uri("pack://application:,,,/Assets/sitch.ico"));
+        Icon = Shelf.UI.Brand.Icon;
 
         var panel = new StackPanel { Margin = new Thickness(28, 24, 28, 24) };
 
         var header = new StackPanel { Orientation = Orientation.Horizontal };
         header.Children.Add(new Image
         {
-            Source = new BitmapImage(new Uri("pack://application:,,,/Assets/sitch.ico")),
+            Source = Shelf.UI.Brand.Icon,
             Width = 44, Height = 44, Margin = new Thickness(0, 0, 14, 0),
         });
         var titles = new StackPanel { VerticalAlignment = VerticalAlignment.Center };

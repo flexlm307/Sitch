@@ -105,6 +105,13 @@ capture orchestration, window management), `app.manifest` (PMv2), `Sitch.csproj`
   `python <MediaMiniFolder>/cli.py optimize <file> --in-place --no-backup --json` in the background
   (PNG/JPG only). The line's folder watcher ignores dot-named files because MediaMini's temp files
   are `.mm_tmp_*` next to the target.
+- **OCR** (`Shelf/Core/Ocr.cs`): the line's "Copy text" and the editor's "Extract text" (Ctrl+Shift+O,
+  `Editor/OcrWindow.cs`). `OcrEngine` = "Windows" (built in) or "RapidOCR": `RapidOcr.cs` keeps one
+  Python worker (`pip install rapidocr`) alive across reads (model load costs seconds), exits after
+  10 idle minutes, and on any failure Windows' engine reads instead.
+- **Magnifier** (`ShowMagnifier`, Region mode): `OverlayVisual.DrawMagnifier` zooms 15x15 physical
+  pixels of the frozen frame around the pointer; C / Shift+C copy the colour as HEX / RGB and end
+  the capture (`CaptureController.CopyColor`).
 - **Keyboard capture:** arrows define/nudge the selection, Shift+arrows resize, Ctrl = 10px steps,
   Enter confirms, **Esc abandons the whole capture** (single press — `OverlayWindow.OnKeyDown` →
   `CaptureController.Cancel`; the overlay under the cursor takes keyboard focus in
