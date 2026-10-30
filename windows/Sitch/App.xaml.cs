@@ -157,11 +157,11 @@ public partial class App : Application
             if (!HotkeyChord.TryParse(get(Settings), out var chord)) continue;
             // A settings file from before the recorder refused duplicates: first slot wins.
             if (taken.TryGetValue(chord, out var owner))
-                NotifyPopup.Show($"{name} hotkey {chord} is already used by {owner}.");
+                NotifyPopup.Show(Loc.F("{0} hotkey {1} is already used by {2}.", Loc.T(name), chord, Loc.T(owner)));
             else if (_hotkeys.Register(id, chord))
                 taken[chord] = name;
             else
-                NotifyPopup.Show($"{name} hotkey {chord} is in use by another app.");
+                NotifyPopup.Show(Loc.F("{0} hotkey {1} is in use by another app.", Loc.T(name), chord));
         }
     }
 
@@ -226,19 +226,19 @@ public partial class App : Application
             {
                 if (ClipboardHelper.CopyImage(result.Bitmap))
                 {
-                    NotifyPopup.Show("Copied to clipboard.", result.Bitmap);
+                    NotifyPopup.Show(Loc.T("Copied to clipboard."), result.Bitmap);
                 }
                 else
                 {
                     // Clipboard held by another app — don't lose the frame.
                     var fallback = Exporters.QuickSave(result.Bitmap);
-                    NotifyPopup.Show($"Clipboard busy — saved {Path.GetFileName(fallback)} instead.", result.Bitmap);
+                    NotifyPopup.Show(Loc.F("Clipboard busy — saved {0} instead.", Path.GetFileName(fallback)), result.Bitmap);
                 }
             }
             else
             {
                 var path = Exporters.QuickSave(result.Bitmap);
-                NotifyPopup.Show($"Saved {Path.GetFileName(path)}", result.Bitmap);
+                NotifyPopup.Show(Loc.F("Saved {0}", Path.GetFileName(path)), result.Bitmap);
             }
             if (Settings.AfterHang) Shelf?.HangBitmap(result.Bitmap, result.SourceScreenRect);
         });
@@ -271,18 +271,18 @@ public partial class App : Application
         {
             if (ClipboardHelper.CopyImage(result.Bitmap))
             {
-                NotifyPopup.Show("Copied to clipboard.", result.Bitmap);
+                NotifyPopup.Show(Loc.T("Copied to clipboard."), result.Bitmap);
                 any = true; // a failed copy must NOT count — the editor fallback keeps the frame
             }
             else
             {
-                NotifyPopup.Show("Clipboard is busy — opening the editor instead.");
+                NotifyPopup.Show(Loc.T("Clipboard is busy — opening the editor instead."));
             }
         }
         if (Settings.AfterSave)
         {
             var path = Exporters.QuickSave(result.Bitmap);
-            NotifyPopup.Show($"Saved {Path.GetFileName(path)}", result.Bitmap);
+            NotifyPopup.Show(Loc.F("Saved {0}", Path.GetFileName(path)), result.Bitmap);
             any = true;
         }
         if (Settings.AfterHang && Shelf is not null)
@@ -291,9 +291,9 @@ public partial class App : Application
             any = true;
         }
         if (into is not null)
-            into.AddCaptureTab(result.Bitmap, "Untitled");
+            into.AddCaptureTab(result.Bitmap, Loc.T("Untitled"));
         else if (Settings.AfterShowEditor || !any)
-            OpenEditor(result.Bitmap, "Untitled", result.SourceScreenRect);
+            OpenEditor(result.Bitmap, Loc.T("Untitled"), result.SourceScreenRect);
     }
 
     private void RememberRegion(CaptureResult result)
@@ -335,7 +335,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Couldn't open {path}\n\n{ex.Message}", "Sitch",
+            MessageBox.Show(Loc.F("Couldn't open {0}", path) + $"\n\n{ex.Message}", "Sitch",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -359,7 +359,7 @@ public partial class App : Application
             if (w is EditorWindow) { w.Activate(); return; }
         // Someone launched the exe again with nothing to show — say so instead of doing
         // nothing (the classic "I double-clicked it and nothing happened").
-        NotifyPopup.Show($"Sitch is already running in the system tray.\nPress {Settings.CaptureHotkey} to capture.");
+        NotifyPopup.Show(Loc.F("Sitch is already running in the system tray.\nPress {0} to capture.", Settings.CaptureHotkey));
     }
 
     public void UpdateScreenshotWatcher()

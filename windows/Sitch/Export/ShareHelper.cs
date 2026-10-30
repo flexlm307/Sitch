@@ -81,9 +81,9 @@ public static class ShareHelper
         {
             // Share sheet unavailable (OS state, elevated process, …) — degrade gracefully.
             if (ClipboardHelper.CopyImage(bitmap))
-                NotifyPopup.Show("Share isn't available here — copied to clipboard instead.");
+                NotifyPopup.Show(Loc.T("Share isn't available here — copied to clipboard instead."));
             else
-                NotifyPopup.Show("Share isn't available right now.");
+                NotifyPopup.Show(Loc.T("Share isn't available right now."));
         }
     }
 

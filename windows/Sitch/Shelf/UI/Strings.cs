@@ -5,14 +5,14 @@ using Sitch.Shelf.Core;
 namespace Sitch.Shelf.UI;
 
 /// <summary>
-/// Every word the line shows, in English and Arabic (the rest of Sitch is English only). The language follows
-/// Windows unless chosen in Settings.
+/// Every word the line shows, in English, Chinese and Arabic. "auto" follows Sitch's own language (which
+/// follows Windows unless chosen in Sitch's Settings).
 /// </summary>
 public static class Strings
 {
     public static event Action? LanguageChanged;
 
-    /// <summary>"en" or "ar".</summary>
+    /// <summary>"en", "zh" or "ar".</summary>
     public static string Language { get; private set; } = Resolve();
 
     public static bool IsRtl => Language == "ar";
@@ -28,11 +28,17 @@ public static class Strings
     private static string Resolve()
     {
         var chosen = Core.Settings.Current.Language;
-        if (chosen is "en" or "ar") return chosen;
+        if (chosen is "en" or "zh" or "ar") return chosen;
+        if (global::Sitch.Shell.Loc.IsChinese) return "zh";
         return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar" ? "ar" : "en";
     }
 
-    private static string L(string en) => Language == "ar" && Ar.TryGetValue(en, out var ar) ? ar : en;
+    private static string L(string en) => Language switch
+    {
+        "zh" => Zh.TryGetValue(en, out var zh) ? zh : en,
+        "ar" => Ar.TryGetValue(en, out var ar) ? ar : en,
+        _ => en,
+    };
 
     public const string AppName = "Sitch";
     public static string Tagline => L("Screenshots, hung out to dry.");
@@ -58,8 +64,8 @@ public static class Strings
     public static string LineSettings => L("Line settings…");
     public static string SitchSettings => L("Sitch settings…");
     public static string ScreenshotLine => L("Screenshot line");
-    public static string About => L("About Snapline");
-    public static string Quit => L("Quit Snapline");
+    public static string About => L("About Sitch");
+    public static string Quit => L("Quit Sitch");
 
     public static string Copy => L("Copy");
     public static string CopyText => L("Copy text");
@@ -120,7 +126,7 @@ public static class Strings
     public static string AutoArrangeTip => L("Off, each photo stays where you put it");
     public static string Appearance => L("Appearance");
     public static string LanguageLabel => L("Language");
-    public static string Auto => L("Follow Windows");
+    public static string Auto => L("Same as Sitch");
     public static string Light => L("Light");
     public static string Dark => L("Dark");
     public static string CaughtCapturesFolder => L("Caught captures are saved to");
@@ -177,8 +183,8 @@ public static class Strings
         ["Line settings…"] = "إعدادات الحبل…",
         ["Sitch settings…"] = "إعدادات Sitch…",
         ["Screenshot line"] = "حبل اللقطات",
-        ["About Snapline"] = "حول Snapline",
-        ["Quit Snapline"] = "إنهاء Snapline",
+        ["About Sitch"] = "حول Sitch",
+        ["Quit Sitch"] = "إنهاء Sitch",
         ["Copy"] = "نسخ",
         ["Copy text"] = "نسخ النص",
         ["Open"] = "فتح",
@@ -236,7 +242,7 @@ public static class Strings
         ["Off, each photo stays where you put it"] = "عند الإيقاف، تبقى كل صورة حيث وضعتها",
         ["Appearance"] = "السمة",
         ["Language"] = "اللغة",
-        ["Follow Windows"] = "حسب Windows",
+        ["Same as Sitch"] = "مثل Sitch",
         ["Light"] = "فاتح",
         ["Dark"] = "داكن",
         ["Caught captures are saved to"] = "تُحفظ اللقطات الملتقطة في",
@@ -253,5 +259,108 @@ public static class Strings
         ["Blue"] = "أزرق", ["Green"] = "أخضر", ["Gold"] = "ذهبي", ["Pink"] = "وردي", ["Purple"] = "بنفسجي",
         ["Wooden"] = "خشبي", ["Aluminium"] = "ألومنيوم", ["Coloured plastic, mixed"] = "بلاستيك ملوّن متنوّع",
         ["Red plastic"] = "بلاستيك أحمر", ["Blue plastic"] = "بلاستيك أزرق", ["Green plastic"] = "بلاستيك أخضر", ["Yellow plastic"] = "بلاستيك أصفر",
+    };
+
+    private static readonly Dictionary<string, string> Zh = new()
+    {
+        ["Screenshots, hung out to dry."] = "截图，晾在绳上。",
+        ["Show line"] = "显示晾衣绳",
+        ["Hide line"] = "隐藏晾衣绳",
+        ["Take everything down"] = "全部取下",
+        ["New capture"] = "新截图",
+        ["Click to take a new screenshot"] = "点击截一张新图",
+        ["Catch clipboard captures"] = "捕获剪贴板截图",
+        ["Win+Shift+S and PrtScn captures hang even when no file is saved"] = "Win+Shift+S 和 PrtScn 截的图即使没存成文件也会挂上来",
+        ["Stay down until each capture is used"] = "每张截图用过之前不收起",
+        ["The line waits while a capture has not been copied, dragged or opened"] = "还有截图没被复制、拖走或打开时，晾衣绳保持展开",
+        ["Take down after dragging into an app"] = "拖进应用后取下",
+        ["A photo dropped into a chat or an app leaves the line, like one saved to a folder"] = "拖进聊天或应用的照片会离开晾衣绳，和存进文件夹一样",
+        ["Bring the line down when the pointer rests at the top edge"] = "鼠标停在屏幕顶端时放下晾衣绳",
+        ["Hold the pointer still against the top of the screen for half a second. Off, the shortcut and the tray icon show the line."] = "把鼠标在屏幕顶端停半秒。关闭后，用快捷键或托盘图标显示晾衣绳。",
+        ["Open Screenshots folder"] = "打开截图文件夹",
+        ["Open caught captures folder"] = "打开捕获截图文件夹",
+        ["Caught captures need a folder of their own, because discarding one sends it to the Recycle Bin. Pick a folder that is not your Desktop, Pictures, Screenshots or a watched folder, and not a parent of them."] = "捕获的截图需要单独的文件夹，因为丢弃时会移到回收站。请选一个不是桌面、图片、截图或被监视文件夹的文件夹，也不能是它们的上级文件夹。",
+        ["Sounds"] = "声音",
+        ["Start with Windows"] = "开机启动",
+        ["Settings…"] = "设置…",
+        ["Line settings…"] = "晾衣绳设置…",
+        ["Sitch settings…"] = "Sitch 设置…",
+        ["Screenshot line"] = "截图晾衣绳",
+        ["About Sitch"] = "关于 Sitch",
+        ["Quit Sitch"] = "退出 Sitch",
+        ["Copy"] = "复制",
+        ["Copy text"] = "复制文字",
+        ["Open"] = "打开",
+        ["Edit"] = "编辑",
+        ["Mark up"] = "标注",
+        ["Edit in Paint"] = "用画图编辑",
+        ["Pen"] = "画笔",
+        ["Highlighter"] = "荧光笔",
+        ["Circle"] = "圆圈",
+        ["Box"] = "方框",
+        ["Arrow"] = "箭头",
+        ["Text"] = "文字",
+        ["Blur"] = "模糊",
+        ["New note"] = "新便签",
+        ["Menu"] = "菜单",
+        ["Edit note"] = "编辑便签",
+        ["Note colour"] = "便签颜色",
+        ["Write a note…"] = "写点什么…",
+        ["Yellow"] = "黄色", ["Orange"] = "橙色",
+        ["Colour"] = "颜色",
+        ["Thickness"] = "粗细",
+        ["Undo"] = "撤销",
+        ["Redo"] = "重做",
+        ["Revert to original"] = "恢复原图",
+        ["Done"] = "完成",
+        ["Saved"] = "已保存",
+        ["Back to the original"] = "已恢复原图",
+        ["Could not save"] = "保存失败",
+        ["Show in Explorer"] = "在资源管理器中显示",
+        ["Keep on the line"] = "留在晾衣绳上",
+        ["Save to Desktop"] = "保存到桌面",
+        ["Save to Pictures\\Screenshots"] = "保存到 图片\\屏幕截图",
+        ["Discard"] = "丢弃",
+        ["Take down"] = "取下",
+        ["Move to Recycle Bin"] = "移到回收站",
+        ["Take a screenshot and it will hang here"] = "截一张图，它会挂在这里",
+        ["Copied"] = "已复制",
+        ["Text copied"] = "文字已复制",
+        ["just now"] = "刚刚",
+        ["{0} min ago"] = "{0} 分钟前",
+        ["{0} h ago"] = "{0} 小时前",
+        ["Settings"] = "设置",
+        ["The line"] = "晾衣绳",
+        ["Look"] = "外观",
+        ["Captures"] = "截图",
+        ["General"] = "通用",
+        ["Show or hide the line"] = "显示或隐藏晾衣绳",
+        ["Click here and press the keys you want, like Ctrl+Alt+T"] = "点这里，然后按下想用的组合键，比如 Ctrl+Alt+T",
+        ["Distance from the top of the screen"] = "离屏幕顶端的距离",
+        ["You can also drag the line itself up or down"] = "也可以直接上下拖动晾衣绳",
+        ["Line colour"] = "绳子颜色",
+        ["Clothespins"] = "夹子",
+        ["Bows at the ends of the line"] = "绳子两端打蝴蝶结",
+        ["Arrange photos evenly along the line"] = "照片沿绳子均匀排列",
+        ["Off, each photo stays where you put it"] = "关闭后，每张照片停在你放的位置",
+        ["Appearance"] = "主题",
+        ["Language"] = "语言",
+        ["Same as Sitch"] = "与 Sitch 相同",
+        ["Light"] = "浅色",
+        ["Dark"] = "深色",
+        ["Caught captures are saved to"] = "捕获的截图保存到",
+        ["Change…"] = "更改…",
+        ["Folders watched for new screenshots"] = "监视新截图的文件夹",
+        ["Add folder…"] = "添加文件夹…",
+        ["Remove"] = "移除",
+        ["Changes apply right away. Everything lives in {0}."] = "更改立即生效。所有数据都在 {0}。",
+        ["Your screenshots hang on a line"] = "你的截图会挂在一根绳上",
+        ["Take a screenshot and it hangs at the top of the screen. Rest the pointer against the top edge to bring the line down, or press {0}."] = "截一张图，它会挂在屏幕顶端。把鼠标停在顶端可放下晾衣绳，也可以按 {0}。",
+        ["Click a photo to copy it. Press and hold to edit it. Double click to open it.\nDrag it along the line to reorder, into an app to send a copy, into a folder to keep it, or to the Recycle Bin to let it go.\nRest the pointer against the top edge of the screen, or press {0}, to bring the line down."] =
+            "单击照片复制，按住编辑，双击打开。\n沿绳子拖动可调整顺序，拖进应用可发送副本，拖进文件夹可保存，拖到回收站可丢弃。\n把鼠标停在屏幕顶端，或按 {0}，可放下晾衣绳。",
+        ["Bronze"] = "古铜", ["Gray"] = "灰色", ["Black"] = "黑色", ["White"] = "白色", ["Red"] = "红色",
+        ["Blue"] = "蓝色", ["Green"] = "绿色", ["Gold"] = "金色", ["Pink"] = "粉色", ["Purple"] = "紫色",
+        ["Wooden"] = "木质", ["Aluminium"] = "铝制", ["Coloured plastic, mixed"] = "彩色塑料（混搭）",
+        ["Red plastic"] = "红色塑料", ["Blue plastic"] = "蓝色塑料", ["Green plastic"] = "绿色塑料", ["Yellow plastic"] = "黄色塑料",
     };
 }

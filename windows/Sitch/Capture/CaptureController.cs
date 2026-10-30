@@ -16,8 +16,9 @@ public sealed record CaptureResult(BitmapSource Bitmap, CaptureMode Kind,
 /// monitor (each at that monitor's DPI), and completes with a crop of the frozen frame.
 /// All selection state lives here, in physical virtual-screen coordinates, so a drag can
 /// span monitors with different scale factors. In Region mode a plain click (no drag)
-/// captures the hovered window — one hotkey covers region AND window, Skitch-style.
-/// Arrow keys define/nudge a selection, Enter confirms (keyboard capture).
+/// captures the hovered window — one hotkey covers region AND window, Skitch-style — or, with
+/// <see cref="AppSettings.SnapToElements"/>, the hovered UI element (control, page, pane); the mouse
+/// wheel steps out to its parents and back in. Arrow keys define/nudge a selection, Enter confirms.
 /// </summary>
 public sealed class CaptureController
 {
@@ -27,6 +28,11 @@ public sealed class CaptureController
     private Int32Rect _frozenBounds;
     private CaptureMode _mode;
     private List<WindowEntry>? _windows;
+    private ElementSnapper? _snapper;
+    // Elements under the pointer, window first; _snapLevel indexes the highlighted one.
+    private IReadOnlyList<SnapTarget> _snapChain = [];
+    private int _snapLevel;
+    private int _levelsUp; // wheel steps out from the innermost element, kept while the pointer stays inside
     public bool IsActive { get; private set; }
 
     // Selection state (physical px, virtual-screen space)
@@ -37,6 +43,12 @@ public sealed class CaptureController
     public Point PointerPhysical { get; private set; }
     public WindowEntry? HoveredWindow { get; private set; }
     public CaptureMode Mode => _mode;
+
+    /// <summary>The snapped element below window level, or null (then a click takes the whole window).</summary>
+    public SnapTarget? HoveredElement => _snapLevel > 0 && _snapLevel < _snapChain.Count ? _snapChain[_snapLevel] : null;
+
+    /// <summary>The highlighted thing's type name for the size readout ("button", "窗口"), or "".</summary>
+    public string HoverKind => _snapLevel < _snapChain.Count ? _snapChain[_snapLevel].Kind : "";
 
     public bool HasSelection => Dragging || HasKeyboardSelection;
 
@@ -61,6 +73,8 @@ public sealed class CaptureController
         Dragging = false;
         HasKeyboardSelection = false;
         HoveredWindow = null;
+        ResetSnap();
+        _snapper = mode == CaptureMode.Region && App.Settings.SnapToElements ? new ElementSnapper(OnSnapChain) : null;
 
         (_frozen, _frozenBounds) = ScreenFreezer.CaptureVirtualScreen();
         // Window list is used by Window mode AND by Region mode's click-to-capture-window.
@@ -101,9 +115,41 @@ public sealed class CaptureController
 
     private void UpdateHover(Point physical)
     {
-        HoveredWindow = _windows?.FirstOrDefault(w =>
-            physical.X >= w.Bounds.X && physical.X < w.Bounds.X + w.Bounds.Width &&
-            physical.Y >= w.Bounds.Y && physical.Y < w.Bounds.Y + w.Bounds.Height);
+        var was = HoveredWindow;
+        HoveredWindow = _windows?.FirstOrDefault(w => Contains(w.Bounds, physical));
+        if (_snapper is null) return;
+        if (HoveredWindow != was) ResetSnap();
+        else if (_snapLevel < _snapChain.Count && !Contains(_snapChain[_snapLevel].Bounds, physical)) _levelsUp = 0;
+        if (HoveredWindow is { } win) _snapper.Request(win, physical);
+    }
+
+    private static bool Contains(Int32Rect r, Point p) =>
+        p.X >= r.X && p.X < r.X + r.Width && p.Y >= r.Y && p.Y < r.Y + r.Height;
+
+    private void OnSnapChain(WindowEntry window, IReadOnlyList<SnapTarget> chain)
+    {
+        if (!IsActive || Dragging || window != HoveredWindow) return;
+        _snapChain = chain;
+        _snapLevel = Math.Max(0, chain.Count - 1 - _levelsUp);
+        Repaint();
+    }
+
+    /// <summary>Mouse wheel: <paramref name="outward"/> steps toward the window, otherwise back in.</summary>
+    internal void StepSnap(bool outward)
+    {
+        if (_snapper is null || Dragging || HasKeyboardSelection || _snapChain.Count == 0) return;
+        int level = Math.Clamp(_snapLevel + (outward ? -1 : 1), 0, _snapChain.Count - 1);
+        if (level == _snapLevel) return;
+        _snapLevel = level;
+        _levelsUp = _snapChain.Count - 1 - level;
+        Repaint();
+    }
+
+    private void ResetSnap()
+    {
+        _snapChain = [];
+        _snapLevel = 0;
+        _levelsUp = 0;
     }
 
     internal void EndDrag(Point physical)
@@ -122,8 +168,9 @@ public sealed class CaptureController
         if (rect.Width < 4 || rect.Height < 4)
         {
             Dragging = false;
-            // A plain click captures the window under the cursor (spec: one hotkey, all modes).
-            if (HoveredWindow is { } win) CompleteWindow(win);
+            // A plain click captures the snapped element, else the window under the cursor (spec: one hotkey, all modes).
+            if (HoveredElement is { } element) CompleteRegion(ClipToScreen(element.Bounds));
+            else if (HoveredWindow is { } win) CompleteWindow(win);
             else Cancel();
             return;
         }
@@ -161,6 +208,14 @@ public sealed class CaptureController
             var rect = SelectionRect;
             if (rect.Width >= 4 && rect.Height >= 4) CompleteRegion(rect);
         }
+    }
+
+    private Int32Rect ClipToScreen(Int32Rect r)
+    {
+        int x1 = Math.Max(r.X, _frozenBounds.X), y1 = Math.Max(r.Y, _frozenBounds.Y);
+        int x2 = Math.Min(r.X + r.Width, _frozenBounds.X + _frozenBounds.Width);
+        int y2 = Math.Min(r.Y + r.Height, _frozenBounds.Y + _frozenBounds.Height);
+        return new Int32Rect(x1, y1, Math.Max(1, x2 - x1), Math.Max(1, y2 - y1));
     }
 
     internal void Cancel()
@@ -211,6 +266,9 @@ public sealed class CaptureController
         Dragging = false;
         HasKeyboardSelection = false;
         HoveredWindow = null;
+        _snapper?.Cancel();
+        _snapper = null;
+        ResetSnap();
         IsActive = false;
     }
 

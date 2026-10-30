@@ -1,6 +1,7 @@
 <Window x:Class="Sitch.Editor.EditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sh="clr-namespace:Sitch.Shell"
         xmlns:local="clr-namespace:Sitch.Editor"
         Background="{DynamicResource Brush.Canvas}"
         Foreground="{DynamicResource Brush.Text}"
@@ -48,18 +49,18 @@
 
                 <!-- Normal tool options bar -->
                 <StackPanel x:Name="NormalBar" Grid.Column="0" ClipToBounds="True" Orientation="Horizontal" Margin="10,0">
-                    <Button x:Name="BtnNewCapture" Style="{StaticResource IconButton}" ToolTip="New Capture (region)">
+                    <Button x:Name="BtnNewCapture" Style="{StaticResource IconButton}" ToolTip="{sh:T 'New Capture (region)'}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M7,4 L8.5,2 H11.5 L13,4 H16 A1.5,1.5 0 0 1 17.5,5.5 V14.5 A1.5,1.5 0 0 1 16,16 H4 A1.5,1.5 0 0 1 2.5,14.5 V5.5 A1.5,1.5 0 0 1 4,4 Z M10,6.8 A3.4,3.4 0 1 1 9.99,6.8"
                                   Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.6" Width="20" Height="18" Stretch="None"/>
-                            <TextBlock Text="New Capture" Margin="7,0,0,0" Style="{StaticResource BarText}"/>
+                            <TextBlock Text="{sh:T 'New Capture'}" Margin="7,0,0,0" Style="{StaticResource BarText}"/>
                         </StackPanel>
                     </Button>
                     <Rectangle Style="{StaticResource Divider}"/>
 
                     <ContentControl x:Name="ToolIconHost" VerticalAlignment="Center"
                                     Foreground="{DynamicResource Brush.Accent}" IsTabStop="False"/>
-                    <TextBlock x:Name="ToolNameLabel" Text="Arrow" Margin="6,0,0,0" FontWeight="SemiBold"
+                    <TextBlock x:Name="ToolNameLabel" Text="{sh:T 'Arrow'}" Margin="6,0,0,0" FontWeight="SemiBold"
                                Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center"/>
                     <Rectangle Style="{StaticResource Divider}"/>
 
@@ -75,33 +76,33 @@
 
                     <StackPanel x:Name="ArrowPanel" Orientation="Horizontal" VerticalAlignment="Center">
                         <Rectangle Style="{StaticResource Divider}"/>
-                        <ToggleButton x:Name="ArrowTapered" Style="{StaticResource SegToggle}" ToolTip="Tapered (Skitch-style)"/>
-                        <ToggleButton x:Name="ArrowFilled" Style="{StaticResource SegToggle}" ToolTip="Filled"/>
-                        <ToggleButton x:Name="ArrowOpen" Style="{StaticResource SegToggle}" ToolTip="Open"/>
-                        <ToggleButton x:Name="ArrowConcave" Style="{StaticResource SegToggle}" ToolTip="Concave"/>
+                        <ToggleButton x:Name="ArrowTapered" Style="{StaticResource SegToggle}" ToolTip="{sh:T 'Tapered (Skitch-style)'}"/>
+                        <ToggleButton x:Name="ArrowFilled" Style="{StaticResource SegToggle}" ToolTip="{sh:T 'Filled'}"/>
+                        <ToggleButton x:Name="ArrowOpen" Style="{StaticResource SegToggle}" ToolTip="{sh:T 'Open'}"/>
+                        <ToggleButton x:Name="ArrowConcave" Style="{StaticResource SegToggle}" ToolTip="{sh:T 'Concave'}"/>
                         <Rectangle Style="{StaticResource Divider}"/>
-                        <ToggleButton x:Name="ArrowDouble" Style="{StaticResource SegToggle}" ToolTip="Double-headed"/>
+                        <ToggleButton x:Name="ArrowDouble" Style="{StaticResource SegToggle}" ToolTip="{sh:T 'Double-headed'}"/>
                     </StackPanel>
 
                     <StackPanel x:Name="TextPanel" Orientation="Horizontal" VerticalAlignment="Center">
                         <Rectangle Style="{StaticResource Divider}"/>
                         <ComboBox x:Name="FontCombo" Width="150" Height="28" VerticalAlignment="Center"/>
                         <ComboBox x:Name="FontSizeCombo" Width="64" Height="28" Margin="6,0,0,0" IsEditable="True"/>
-                        <ToggleButton x:Name="BoldToggle" Style="{StaticResource SegToggle}" Margin="6,0,0,0" ToolTip="Bold">
+                        <ToggleButton x:Name="BoldToggle" Style="{StaticResource SegToggle}" Margin="6,0,0,0" ToolTip="{sh:T 'Bold'}">
                             <TextBlock Text="B" FontWeight="Bold"/>
                         </ToggleButton>
-                        <ToggleButton x:Name="ItalicToggle" Style="{StaticResource SegToggle}" ToolTip="Italic">
+                        <ToggleButton x:Name="ItalicToggle" Style="{StaticResource SegToggle}" ToolTip="{sh:T 'Italic'}">
                             <TextBlock Text="I" FontStyle="Italic" FontFamily="Georgia"/>
                         </ToggleButton>
                     </StackPanel>
 
                     <StackPanel x:Name="FillPanel" Orientation="Horizontal" VerticalAlignment="Center">
                         <Rectangle Style="{StaticResource Divider}"/>
-                        <ToggleButton x:Name="OutlineToggle" Style="{StaticResource SegToggle}" ToolTip="Outline">
+                        <ToggleButton x:Name="OutlineToggle" Style="{StaticResource SegToggle}" ToolTip="{sh:T 'Outline'}">
                             <Rectangle Width="14" Height="10" StrokeThickness="1.7"
                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                         </ToggleButton>
-                        <ToggleButton x:Name="FilledToggle" Style="{StaticResource SegToggle}" ToolTip="Filled">
+                        <ToggleButton x:Name="FilledToggle" Style="{StaticResource SegToggle}" ToolTip="{sh:T 'Filled'}">
                             <Rectangle Width="14" Height="10"
                                        Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"/>
                         </ToggleButton>
@@ -109,33 +110,33 @@
 
                     <StackPanel x:Name="ObscurePanel" Orientation="Horizontal" VerticalAlignment="Center">
                         <Rectangle Style="{StaticResource Divider}"/>
-                        <ToggleButton x:Name="ObPixelate" Style="{StaticResource SegToggle}" Content="Pixelate" Padding="8,4"/>
-                        <ToggleButton x:Name="ObBlur" Style="{StaticResource SegToggle}" Content="Blur" Padding="8,4"/>
-                        <ToggleButton x:Name="ObBlock" Style="{StaticResource SegToggle}" Content="Block" Padding="8,4"/>
-                        <ToggleButton x:Name="ObStripes" Style="{StaticResource SegToggle}" Content="Stripes" Padding="8,4"/>
+                        <ToggleButton x:Name="ObPixelate" Style="{StaticResource SegToggle}" Content="{sh:T 'Pixelate'}" Padding="8,4"/>
+                        <ToggleButton x:Name="ObBlur" Style="{StaticResource SegToggle}" Content="{sh:T 'Blur'}" Padding="8,4"/>
+                        <ToggleButton x:Name="ObBlock" Style="{StaticResource SegToggle}" Content="{sh:T 'Block'}" Padding="8,4"/>
+                        <ToggleButton x:Name="ObStripes" Style="{StaticResource SegToggle}" Content="{sh:T 'Stripes'}" Padding="8,4"/>
                     </StackPanel>
 
                     <StackPanel x:Name="StampPanel" Orientation="Horizontal" VerticalAlignment="Center">
                         <Rectangle Style="{StaticResource Divider}"/>
-                        <ToggleButton x:Name="StampCheck" Style="{StaticResource SegToggle}" Content="✓" FontWeight="Bold" ToolTip="Check"/>
-                        <ToggleButton x:Name="StampCross" Style="{StaticResource SegToggle}" Content="✕" FontWeight="Bold" ToolTip="Cross"/>
-                        <ToggleButton x:Name="StampStar" Style="{StaticResource SegToggle}" Content="★" ToolTip="Star"/>
-                        <ToggleButton x:Name="StampDot" Style="{StaticResource SegToggle}" Content="●" ToolTip="Dot"/>
+                        <ToggleButton x:Name="StampCheck" Style="{StaticResource SegToggle}" Content="✓" FontWeight="Bold" ToolTip="{sh:T 'Check'}"/>
+                        <ToggleButton x:Name="StampCross" Style="{StaticResource SegToggle}" Content="✕" FontWeight="Bold" ToolTip="{sh:T 'Cross'}"/>
+                        <ToggleButton x:Name="StampStar" Style="{StaticResource SegToggle}" Content="★" ToolTip="{sh:T 'Star'}"/>
+                        <ToggleButton x:Name="StampDot" Style="{StaticResource SegToggle}" Content="●" ToolTip="{sh:T 'Dot'}"/>
                         <ToggleButton x:Name="StampNumber" Style="{StaticResource SegToggle}" Content="1·2·3" Padding="8,4"
-                                      ToolTip="Auto-incrementing numbers"/>
+                                      ToolTip="{sh:T 'Auto-incrementing numbers'}"/>
                     </StackPanel>
 
                     <StackPanel x:Name="StickerPanel" Orientation="Horizontal" VerticalAlignment="Center">
                         <Rectangle Style="{StaticResource Divider}"/>
                         <Button x:Name="EmojiButton" Style="{StaticResource IconButton}" FontSize="16" Content="😀"
-                                ToolTip="Pick emoji"/>
-                        <TextBlock Text="click the image to place" Foreground="{DynamicResource Brush.TextDim}"
+                                ToolTip="{sh:T 'Pick emoji'}"/>
+                        <TextBlock Text="{sh:T 'click the image to place'}" Foreground="{DynamicResource Brush.TextDim}"
                                    Margin="8,0,0,0" VerticalAlignment="Center" FontSize="12"/>
                     </StackPanel>
 
                     <StackPanel x:Name="SpotlightHintPanel" Orientation="Horizontal" VerticalAlignment="Center">
                         <Rectangle Style="{StaticResource Divider}"/>
-                        <TextBlock Text="drag to spotlight — everything else dims" Foreground="{DynamicResource Brush.TextDim}"
+                        <TextBlock Text="{sh:T 'drag to spotlight — everything else dims'}" Foreground="{DynamicResource Brush.TextDim}"
                                    VerticalAlignment="Center" FontSize="12"/>
                     </StackPanel>
                 </StackPanel>
@@ -145,7 +146,7 @@
                     <StackPanel Orientation="Horizontal">
                         <ContentControl VerticalAlignment="Center" Foreground="{DynamicResource Brush.Accent}"
                                         x:Name="CropIconHost" IsTabStop="False"/>
-                        <TextBlock Text="Crop" Margin="6,0,0,0" FontWeight="SemiBold"
+                        <TextBlock Text="{sh:T 'Crop'}" Margin="6,0,0,0" FontWeight="SemiBold"
                                    Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center"/>
                         <Rectangle Style="{StaticResource Divider}"/>
                         <TextBox x:Name="CropW" Style="{StaticResource Field}" Width="58" HorizontalContentAlignment="Center"/>
@@ -153,7 +154,7 @@
                         <TextBox x:Name="CropH" Style="{StaticResource Field}" Width="58" HorizontalContentAlignment="Center"/>
                         <ComboBox x:Name="AspectCombo" Width="92" Height="28" Margin="10,0,0,0"/>
                         <ToggleButton x:Name="LockToggle" Style="{StaticResource SegToggle}" Margin="6,0,0,0"
-                                      ToolTip="Proportional lock">
+                                      ToolTip="{sh:T 'Proportional lock'}">
                             <Path x:Name="LockGlyph"
                                   Data="M6,9 V6.5 A4,4 0 0 1 14,6.5 M5,9 H15 V16 H5 Z"
                                   Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}"
@@ -161,8 +162,8 @@
                         </ToggleButton>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button x:Name="CropCancel" Style="{StaticResource GhostButton}" Content="Cancel" Margin="0,0,8,0"/>
-                        <Button x:Name="CropApply" Style="{StaticResource PrimaryButton}" Content="Apply"/>
+                        <Button x:Name="CropCancel" Style="{StaticResource GhostButton}" Content="{sh:T 'Cancel'}" Margin="0,0,8,0"/>
+                        <Button x:Name="CropApply" Style="{StaticResource PrimaryButton}" Content="{sh:T 'Apply'}"/>
                     </StackPanel>
                 </Grid>
 
@@ -170,7 +171,7 @@
                 <StackPanel x:Name="SettingsHost" Grid.Column="1" Orientation="Horizontal"
                             VerticalAlignment="Center" Margin="0,0,10,0">
                     <Rectangle Style="{StaticResource Divider}"/>
-                    <Button x:Name="BtnSettings" Style="{StaticResource IconButton}" ToolTip="Settings">
+                    <Button x:Name="BtnSettings" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Settings'}">
                         <Path Data="F0 M18.25,7.94 L18.25,12.06 L15.54,12.3 L17.29,14.38 L14.38,17.29 L12.3,15.54 L12.06,18.25 L7.94,18.25 L7.7,15.54 L5.62,17.29 L2.71,14.38 L4.46,12.3 L1.75,12.06 L1.75,7.94 L4.46,7.7 L2.71,5.62 L5.62,2.71 L7.7,4.46 L7.94,1.75 L12.06,1.75 L12.3,4.46 L14.38,2.71 L17.29,5.62 L15.54,7.7 Z M10,7.4 A2.6,2.6 0 1 1 9.99,7.4 Z"
                               Fill="{DynamicResource Brush.Glyph}" Width="20" Height="20" Stretch="None"/>
                     </Button>
@@ -200,7 +201,7 @@
                         <Rectangle Height="1" Width="26" Fill="{DynamicResource Brush.Divider}" Margin="0,0,0,8"/>
                         <Ellipse x:Name="ColorWell" Width="18" Height="18" Cursor="Hand"
                                  Stroke="{DynamicResource Brush.Divider}" StrokeThickness="1"
-                                 ToolTip="Current color — click to change"/>
+                                 ToolTip="{sh:T 'Current color — click to change'}"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -229,31 +230,31 @@
                 BorderBrush="{DynamicResource Brush.Divider}" BorderThickness="0,1,0,0">
             <Grid Margin="10,0">
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="BtnUndo" Style="{StaticResource IconButton}" ToolTip="Undo (Ctrl+Z)">
+                    <Button x:Name="BtnUndo" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Undo (Ctrl+Z)'}">
                         <Path Data="M8,4 L4,8 L8,12 M4,8 H12 A4,4 0 0 1 16,12 V13"
                               Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.7" Width="20" Height="17"
                               Stretch="None" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                     </Button>
-                    <Button x:Name="BtnRedo" Style="{StaticResource IconButton}" ToolTip="Redo (Ctrl+Y)">
+                    <Button x:Name="BtnRedo" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Redo (Ctrl+Y)'}">
                         <Path Data="M12,4 L16,8 L12,12 M16,8 H8 A4,4 0 0 0 4,12 V13"
                               Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.7" Width="20" Height="17"
                               Stretch="None" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                     </Button>
-                    <Button x:Name="BtnTrash" Style="{StaticResource IconButton}" ToolTip="Delete selection / clear all">
+                    <Button x:Name="BtnTrash" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Delete selection / clear all'}">
                         <Path Data="M5,6 H15 M8,6 V4.5 H12 V6 M6,6 L6.8,16 H13.2 L14,6 M8.6,8.5 V13.5 M11.4,8.5 V13.5"
                               Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.6" Width="20" Height="17"
                               Stretch="None" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                     </Button>
                     <Rectangle Style="{StaticResource Divider}"/>
-                    <Button x:Name="BtnZoomOut" Style="{StaticResource IconButton}" Content="−" FontSize="15" ToolTip="Zoom out"/>
-                    <Button x:Name="BtnZoomLabel" Style="{StaticResource IconButton}" ToolTip="Zoom">
+                    <Button x:Name="BtnZoomOut" Style="{StaticResource IconButton}" Content="−" FontSize="15" ToolTip="{sh:T 'Zoom out'}"/>
+                    <Button x:Name="BtnZoomLabel" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Zoom'}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M0,0 L4,4 8,0" Stroke="{DynamicResource Brush.TextDim}" StrokeThickness="1.5"
                                   VerticalAlignment="Center" Margin="0,2,5,0"/>
                             <TextBlock x:Name="ZoomText" Text="100%" Style="{StaticResource BarText}"/>
                         </StackPanel>
                     </Button>
-                    <Button x:Name="BtnZoomIn" Style="{StaticResource IconButton}" Content="+" FontSize="15" ToolTip="Zoom in"/>
+                    <Button x:Name="BtnZoomIn" Style="{StaticResource IconButton}" Content="+" FontSize="15" ToolTip="{sh:T 'Zoom in'}"/>
                     <Rectangle Style="{StaticResource Divider}"/>
                     <TextBlock x:Name="SizeReadout" Style="{StaticResource BarText}"
                                Foreground="{DynamicResource Brush.TextDim}" FontSize="12"/>
@@ -261,17 +262,17 @@
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button x:Name="BtnDragOut" Style="{StaticResource IconButton}"
-                            ToolTip="Drag me into any app">
+                            ToolTip="{sh:T 'Drag me into any app'}">
                         <Path Data="M8,11 V4.8 A1.2,1.2 0 0 1 10.4,4.8 V9.5 M10.4,9 A1.2,1.2 0 0 1 12.8,9 V10 M12.8,10 A1.2,1.2 0 0 1 15.2,10.4 V13 A4.5,4.5 0 0 1 10.7,17.5 H10 A4.6,4.6 0 0 1 6.2,15.4 L4.2,12.4 A1.3,1.3 0 0 1 6.2,10.9 L8,12.6 M2.5,6.5 H5.5 M3.4,3.4 L5.6,5.6"
                               Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.5" Width="20" Height="20"
                               Stretch="None" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                     </Button>
-                    <Button x:Name="BtnCopy" Style="{StaticResource IconButton}" ToolTip="Copy image (Ctrl+Shift+C)">
+                    <Button x:Name="BtnCopy" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Copy image (Ctrl+Shift+C)'}">
                         <Path Data="M7,7 H16 V17 H7 Z M7,10 H4 V3 H13 V7"
                               Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.6" Width="20" Height="19"
                               Stretch="None" StrokeLineJoin="Round"/>
                     </Button>
-                    <Button x:Name="BtnSave" Style="{StaticResource IconButton}" ToolTip="Save (Ctrl+S)">
+                    <Button x:Name="BtnSave" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Save (Ctrl+S)'}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M10,3 V12 M6.5,8.5 L10,12 L13.5,8.5 M4,14.5 V16 H16 V14.5"
                                   Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.6" Width="20" Height="18"
@@ -281,7 +282,7 @@
                                   VerticalAlignment="Center" Margin="1,2,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Button x:Name="BtnShare" Style="{StaticResource IconButton}" ToolTip="Share">
+                    <Button x:Name="BtnShare" Style="{StaticResource IconButton}" ToolTip="{sh:T 'Share'}">
                         <Path Data="M10,12 V3 M6.8,5.8 L10,2.6 L13.2,5.8 M5,9 H4 V17 H16 V9 H15"
                               Stroke="{DynamicResource Brush.Glyph}" StrokeThickness="1.6" Width="20" Height="19"
                               Stretch="None" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>

@@ -123,6 +123,13 @@ public sealed class OverlayWindow : Window
         _controller.EndDrag(ToPhysical(e.GetPosition(this)));
     }
 
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
+    {
+        base.OnMouseWheel(e);
+        _controller.StepSnap(outward: e.Delta > 0);
+        e.Handled = true;
+    }
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
@@ -210,7 +217,8 @@ public sealed class OverlayWindow : Window
 
             Int32Rect selPhys = c.Mode == CaptureMode.Region && c.HasSelection
                 ? c.SelectionRect
-                : c.HoveredWindow?.Bounds ?? default;
+                : c.HoveredElement?.Bounds ?? c.HoveredWindow?.Bounds ?? default;
+            bool hovering = !(c.Mode == CaptureMode.Region && c.HasSelection);
 
             if (hasSelection)
             {
@@ -221,7 +229,9 @@ public sealed class OverlayWindow : Window
                 dc.DrawRectangle(null, SelectionPen, sel);
                 // Only annotate the readout on overlays the selection actually touches.
                 if (sel.IntersectsWith(full))
-                    DrawReadout(dc, full, sel, $"{selPhys.Width} × {selPhys.Height}");
+                    DrawReadout(dc, full, sel, hovering && c.HoverKind.Length > 0
+                        ? $"{c.HoverKind}  {selPhys.Width} × {selPhys.Height}"
+                        : $"{selPhys.Width} × {selPhys.Height}");
                 if (c.Mode == CaptureMode.Region && !c.HasSelection)
                     DrawCrosshair(dc, full);
             }

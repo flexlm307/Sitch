@@ -112,7 +112,8 @@ public sealed class ScreenshotWatcher : IDisposable
             var dir = new DirectoryInfo(Folder);
             if (!dir.Exists) return new();
             return dir.EnumerateFiles()
-                .Where(f => (f.Attributes & (FileAttributes.Hidden | FileAttributes.Temporary)) == 0 && !f.Name.StartsWith('~'))
+                // Dot names are temp files too: MediaMini compresses in place through ".mm_tmp_*".
+                .Where(f => (f.Attributes & (FileAttributes.Hidden | FileAttributes.Temporary)) == 0 && !f.Name.StartsWith('~') && !f.Name.StartsWith('.'))
                 .Select(f => (f.FullName, Max(f.CreationTime, f.LastWriteTime)))
                 .OrderBy(t => t.Item2)
                 .ToList();

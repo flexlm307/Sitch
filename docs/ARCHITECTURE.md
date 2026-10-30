@@ -80,7 +80,7 @@ capture orchestration, window management), `app.manifest` (PMv2), `Sitch.csproj`
   capture's physical source rect; `Line.Edit` opens `App.OpenImageFile(path, saveBack: true)` and the
   editor's Save calls `FileSaved`. Its own settings/log/caught captures live in
   `%LOCALAPPDATA%\Sitch\Line` (copied from `%LOCALAPPDATA%\Snapline` once); its strings are
-  English + Arabic (`UI/Strings.cs`). Its menu styles (`UI/Theme.xaml`) are scoped to its own menus
+  English + Chinese + Arabic (`UI/Strings.cs`; "auto" follows Sitch's language). Its menu styles (`UI/Theme.xaml`) are scoped to its own menus
   via `Theme.Scope`, never merged into `App.Resources`. Exceptions with `Sitch.Shelf.` frames are
   logged and swallowed by `App.DispatcherUnhandledException`, as Snapline did, so the 30 Hz tick
   can't take Sitch down.
@@ -91,6 +91,20 @@ capture orchestration, window management), `app.manifest` (PMv2), `Sitch.csproj`
 - **One hotkey covers region + window.** In Region mode a drag captures a region, but a plain
   click (no drag) captures the hovered window (`CaptureController.EndDrag`; hover highlight in
   `OverlayWindow`). Window mode always captures the hovered window.
+- **Element snapping** (`SnapToElements`, on by default, Region mode only): `ElementSnapper` walks
+  UI Automation's control view down from the hovered top-level window on a worker thread (never
+  ElementFromPoint — it would hit our own overlay) and returns the chain window → innermost element,
+  each rect clipped to its ancestors. The overlay highlights the innermost; the mouse wheel steps
+  out/in; a click crops that rect from the frozen frame (window level still uses PrintWindow).
+  Chromium needs the tie-break in `Walk` (a childless window-sized D3D pane precedes RootView);
+  Electron apps without accessibility on expose only the window.
+- **Language:** `Shell/Loc.cs` — English strings are the keys, `Loc.T`/`Loc.F` in code,
+  `{sh:T '…'}` in XAML. Resolved once at startup (`AppSettings.Language`: System/en/zh), so a change
+  applies after restart.
+- **MediaMini** (`Export/MediaMini.cs`, off by default): after Save / Save As / quick-save, runs
+  `python <MediaMiniFolder>/cli.py optimize <file> --in-place --no-backup --json` in the background
+  (PNG/JPG only). The line's folder watcher ignores dot-named files because MediaMini's temp files
+  are `.mm_tmp_*` next to the target.
 - **Keyboard capture:** arrows define/nudge the selection, Shift+arrows resize, Ctrl = 10px steps,
   Enter confirms, **Esc abandons the whole capture** (single press — `OverlayWindow.OnKeyDown` →
   `CaptureController.Cancel`; the overlay under the cursor takes keyboard focus in

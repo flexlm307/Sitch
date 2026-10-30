@@ -120,7 +120,7 @@ public sealed class SettingsWindow : Window
         var appearance = Choice(new[] { ("auto", Strings.Auto), ("light", Strings.Light), ("dark", Strings.Dark) }, s.Appearance, v => s.Appearance = v);
         stack.Children.Add(Row(Strings.Appearance, appearance));
 
-        var language = Choice(new[] { ("auto", Strings.Auto), ("en", "English"), ("ar", "العربية") }, s.Language, v => { s.Language = v; Dispatcher.BeginInvoke(Rebuild); });
+        var language = Choice(new[] { ("auto", Strings.Auto), ("en", "English"), ("zh", "中文"), ("ar", "العربية") }, s.Language, v => { s.Language = v; Dispatcher.BeginInvoke(Rebuild); });
         stack.Children.Add(Row(Strings.LanguageLabel, language));
 
         // Captures

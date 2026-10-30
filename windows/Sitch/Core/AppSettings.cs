@@ -15,6 +15,8 @@ public class AppSettings
     public bool ShowTrayIcon { get; set; } = true;
     public bool ShowInTaskbar { get; set; } = true;   // editor windows on the taskbar
     public bool OpenAtLogin { get; set; }
+    /// <summary>"System" | "en" | "zh"; read once at startup (see Shell.Loc).</summary>
+    public string Language { get; set; } = "System";
 
     // -- Capture --------------------------------------------------------------
     public string CaptureHotkey { get; set; } = "Ctrl+Alt+4";
@@ -28,6 +30,12 @@ public class AppSettings
     /// <summary>Every capture lands on the clipboard immediately, ready to paste (on by default).</summary>
     public bool AfterCopy { get; set; } = true;
     public bool AfterSave { get; set; }
+    /// <summary>Run MediaMini (an external Python tool) over every PNG/JPG Sitch saves.</summary>
+    public bool CompressWithMediaMini { get; set; }
+    /// <summary>Folder holding MediaMini's cli.py.</summary>
+    public string MediaMiniFolder { get; set; } = "";
+    /// <summary>Region capture: hover snaps to the UI Automation element under the pointer, not just its window.</summary>
+    public bool SnapToElements { get; set; } = true;
     /// <summary>Hang every capture on the screenshot line (the merged Snapline), when the line is on.</summary>
     public bool AfterHang { get; set; } = true;
     /// <summary>The screenshot line along the top of the screen. Its own settings live in Shelf.Core.Settings.</summary>

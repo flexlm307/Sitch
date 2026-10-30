@@ -1,7 +1,8 @@
 <Window x:Class="Sitch.Editor.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Sitch Settings" Width="540" Height="600"
+        xmlns:sh="clr-namespace:Sitch.Shell"
+        Title="{sh:T 'Sitch Settings'}" Width="540" Height="660"
         Background="{DynamicResource Brush.Window}"
         Foreground="{DynamicResource Brush.Text}"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
@@ -54,30 +55,41 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-            <RadioButton x:Name="TabGeneral" Style="{StaticResource TabButton}" Content="General" IsChecked="True"/>
-            <RadioButton x:Name="TabCapture" Style="{StaticResource TabButton}" Content="Capture"/>
-            <RadioButton x:Name="TabEditor" Style="{StaticResource TabButton}" Content="Editor"/>
+            <RadioButton x:Name="TabGeneral" Style="{StaticResource TabButton}" Content="{sh:T 'General'}" IsChecked="True"/>
+            <RadioButton x:Name="TabCapture" Style="{StaticResource TabButton}" Content="{sh:T 'Capture'}"/>
+            <RadioButton x:Name="TabEditor" Style="{StaticResource TabButton}" Content="{sh:T 'Editor'}"/>
         </StackPanel>
 
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Focusable="False">
+        <Grid>
         <!-- ============ General ============ -->
-        <StackPanel x:Name="PageGeneral" Grid.Row="1" Margin="4,10,4,0">
-            <TextBlock Text="APPEARANCE" Style="{StaticResource SectionHeader}"/>
+        <StackPanel x:Name="PageGeneral" Margin="4,10,4,0">
+            <TextBlock Text="{sh:T 'APPEARANCE'}" Style="{StaticResource SectionHeader}"/>
             <StackPanel Orientation="Horizontal">
-                <RadioButton x:Name="ThemeSystem" Content="System" GroupName="theme" Margin="0,0,18,0"/>
-                <RadioButton x:Name="ThemeLight" Content="Light" GroupName="theme" Margin="0,0,18,0"/>
-                <RadioButton x:Name="ThemeDark" Content="Dark" GroupName="theme"/>
+                <RadioButton x:Name="ThemeSystem" Content="{sh:T 'System'}" GroupName="theme" Margin="0,0,18,0"/>
+                <RadioButton x:Name="ThemeLight" Content="{sh:T 'Light'}" GroupName="theme" Margin="0,0,18,0"/>
+                <RadioButton x:Name="ThemeDark" Content="{sh:T 'Dark'}" GroupName="theme"/>
             </StackPanel>
 
-            <TextBlock Text="BEHAVIOR" Style="{StaticResource SectionHeader}"/>
-            <CheckBox x:Name="ChkTaskbar" Content="Show editor windows in the taskbar"/>
-            <CheckBox x:Name="ChkLogin" Content="Open at login"/>
+            <TextBlock Text="{sh:T 'LANGUAGE'}" Style="{StaticResource SectionHeader}"/>
+            <StackPanel Orientation="Horizontal">
+                <RadioButton x:Name="LangSystem" Content="{sh:T 'System'}" GroupName="lang" Margin="0,0,18,0"/>
+                <RadioButton x:Name="LangEn" Content="English" GroupName="lang" Margin="0,0,18,0"/>
+                <RadioButton x:Name="LangZh" Content="中文" GroupName="lang"/>
+            </StackPanel>
+            <TextBlock x:Name="LangNote" Style="{StaticResource Note}" Text="{sh:T 'Restart Sitch to apply a new language.'}"
+                       Visibility="Collapsed"/>
+
+            <TextBlock Text="{sh:T 'BEHAVIOR'}" Style="{StaticResource SectionHeader}"/>
+            <CheckBox x:Name="ChkTaskbar" Content="{sh:T 'Show editor windows in the taskbar'}"/>
+            <CheckBox x:Name="ChkLogin" Content="{sh:T 'Open at login'}"/>
             <TextBlock Style="{StaticResource Note}"
-                       Text="Sitch lives in your system tray — click the tray icon to capture, right-click for everything else."/>
+                       Text="{sh:T 'Sitch lives in your system tray — click the tray icon to capture, right-click for everything else.'}"/>
         </StackPanel>
 
         <!-- ============ Capture ============ -->
-        <StackPanel x:Name="PageCapture" Grid.Row="1" Margin="4,10,4,0" Visibility="Collapsed">
-            <TextBlock Text="SHORTCUTS" Style="{StaticResource SectionHeader}"/>
+        <StackPanel x:Name="PageCapture" Margin="4,10,4,0" Visibility="Collapsed">
+            <TextBlock Text="{sh:T 'SHORTCUTS'}" Style="{StaticResource SectionHeader}"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150"/>
@@ -88,22 +100,22 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="Capture" VerticalAlignment="Center"/>
+                <TextBlock Text="{sh:T 'Capture'}" VerticalAlignment="Center"/>
                 <TextBox x:Name="HotkeyBox" Grid.Column="1" Style="{StaticResource Field}" IsReadOnly="True"
-                         Margin="0,3" Cursor="Hand" ToolTip="Click, then press the new key combination"/>
-                <TextBlock Text="Recapture last region" Grid.Row="1" VerticalAlignment="Center"/>
+                         Margin="0,3" Cursor="Hand" ToolTip="{sh:T 'Click, then press the new key combination'}"/>
+                <TextBlock Text="{sh:T 'Recapture last region'}" Grid.Row="1" VerticalAlignment="Center"/>
                 <TextBox x:Name="RecaptureBox" Grid.Row="1" Grid.Column="1" Style="{StaticResource Field}"
                          IsReadOnly="True" Margin="0,3" Cursor="Hand"
-                         ToolTip="Click, then press the new key combination"/>
-                <TextBlock Text="Capture to clipboard" Grid.Row="2" VerticalAlignment="Center"/>
+                         ToolTip="{sh:T 'Click, then press the new key combination'}"/>
+                <TextBlock Text="{sh:T 'Capture to clipboard'}" Grid.Row="2" VerticalAlignment="Center"/>
                 <TextBox x:Name="QuickCopyBox" Grid.Row="2" Grid.Column="1" Style="{StaticResource Field}"
                          IsReadOnly="True" Margin="0,3" Cursor="Hand"
-                         ToolTip="Click, then press the new key combination"/>
+                         ToolTip="{sh:T 'Click, then press the new key combination'}"/>
             </Grid>
             <TextBlock Style="{StaticResource Note}"
-                       Text="Click a field and press any combination (e.g. Ctrl+Alt+4 or Ctrl+Shift+PrintScreen). Esc reverts."/>
+                       Text="{sh:T 'Click a field and press any combination (e.g. Ctrl+Alt+4 or Ctrl+Shift+PrintScreen). Esc reverts.'}"/>
 
-            <TextBlock Text="SAVING" Style="{StaticResource SectionHeader}"/>
+            <TextBlock Text="{sh:T 'SAVING'}" Style="{StaticResource SectionHeader}"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -111,40 +123,59 @@
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="FolderBox" Style="{StaticResource Field}"/>
                 <Button x:Name="BtnBrowse" Grid.Column="1" Style="{StaticResource GhostButton}"
-                        Content="Browse…" Margin="8,0,0,0"/>
+                        Content="{sh:T 'Browse…'}" Margin="8,0,0,0"/>
             </Grid>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                <TextBlock Text="Default format" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="{sh:T 'Default format'}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <ComboBox x:Name="FormatCombo" Width="90" Height="28"/>
             </StackPanel>
+            <CheckBox x:Name="ChkCompress" Margin="0,10,0,4" Content="{sh:T 'Compress saved images with MediaMini'}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{sh:T 'MediaMini folder'}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="MediaMiniBox" Grid.Column="1" Style="{StaticResource Field}"/>
+                <Button x:Name="BtnMediaMini" Grid.Column="2" Style="{StaticResource GhostButton}"
+                        Content="{sh:T 'Browse…'}" Margin="8,0,0,0"/>
+            </Grid>
+            <TextBlock Style="{StaticResource Note}"
+                       Text="{sh:T 'After each save, Sitch runs cli.py from MediaMini on the PNG or JPG in the background and replaces it only when it gets smaller. Needs Python on the PATH.'}"/>
 
-            <TextBlock Text="AFTER CAPTURING" Style="{StaticResource SectionHeader}"/>
-            <CheckBox x:Name="ChkAfterShow" Content="Show the editor"/>
-            <CheckBox x:Name="ChkAfterCopy" Content="Copy to clipboard"/>
-            <CheckBox x:Name="ChkAfterSave" Content="Save to file"/>
-            <CheckBox x:Name="ChkAfterHang" Content="Hang on the screenshot line"/>
+            <TextBlock Text="{sh:T 'SNAPPING'}" Style="{StaticResource SectionHeader}"/>
+            <CheckBox x:Name="ChkSnap" Content="{sh:T 'Snap to the element under the pointer'}"/>
+            <TextBlock Style="{StaticResource Note}"
+                       Text="{sh:T 'Hover highlights the control, page or window under the pointer; the mouse wheel steps out to its parent and back. Click to capture it.'}"/>
 
-            <TextBlock Text="SCREENSHOT LINE" Style="{StaticResource SectionHeader}"/>
+            <TextBlock Text="{sh:T 'AFTER CAPTURING'}" Style="{StaticResource SectionHeader}"/>
+            <CheckBox x:Name="ChkAfterShow" Content="{sh:T 'Show the editor'}"/>
+            <CheckBox x:Name="ChkAfterCopy" Content="{sh:T 'Copy to clipboard'}"/>
+            <CheckBox x:Name="ChkAfterSave" Content="{sh:T 'Save to file'}"/>
+            <CheckBox x:Name="ChkAfterHang" Content="{sh:T 'Hang on the screenshot line'}"/>
+
+            <TextBlock Text="{sh:T 'SCREENSHOT LINE'}" Style="{StaticResource SectionHeader}"/>
             <CheckBox x:Name="ChkLine"
-                      Content="Keep captures on a line along the top of the screen"/>
+                      Content="{sh:T 'Keep captures on a line along the top of the screen'}"/>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                <Button x:Name="BtnLineSettings" Style="{StaticResource GhostButton}" Content="Line settings…"/>
+                <Button x:Name="BtnLineSettings" Style="{StaticResource GhostButton}" Content="{sh:T 'Line settings…'}"/>
                 <TextBlock x:Name="LineHint" VerticalAlignment="Center" Margin="10,0,0,0" Opacity="0.7"/>
             </StackPanel>
 
-            <TextBlock Text="TIMER &amp; WATCHER" Style="{StaticResource SectionHeader}"/>
+            <TextBlock Text="{sh:T 'TIMER &amp; WATCHER'}" Style="{StaticResource SectionHeader}"/>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Capture timer" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="{sh:T 'Capture timer'}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <ComboBox x:Name="TimerCombo" Width="90" Height="28"/>
             </StackPanel>
             <CheckBox x:Name="ChkWatch" Margin="0,10,0,0"
-                      Content="Open the editor after a system screenshot (Win+PrtScn)"/>
+                      Content="{sh:T 'Open the editor after a system screenshot (Win+PrtScn)'}"/>
         </StackPanel>
 
         <!-- ============ Editor ============ -->
-        <StackPanel x:Name="PageEditor" Grid.Row="1" Margin="4,10,4,0" Visibility="Collapsed">
-            <TextBlock Text="TOOLS" Style="{StaticResource SectionHeader}"/>
-            <CheckBox x:Name="ChkRememberTool" Content="Remember the last used tool"/>
+        <StackPanel x:Name="PageEditor" Margin="4,10,4,0" Visibility="Collapsed">
+            <TextBlock Text="{sh:T 'TOOLS'}" Style="{StaticResource SectionHeader}"/>
+            <CheckBox x:Name="ChkRememberTool" Content="{sh:T 'Remember the last used tool'}"/>
             <Grid Margin="0,8,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150"/>
@@ -154,20 +185,22 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="Arrow width (px)" VerticalAlignment="Center"/>
+                <TextBlock Text="{sh:T 'Arrow width (px)'}" VerticalAlignment="Center"/>
                 <TextBox x:Name="ArrowWidthBox" Grid.Column="1" Style="{StaticResource Field}" Margin="0,3"/>
-                <TextBlock Text="Text size (pt)" Grid.Row="1" VerticalAlignment="Center"/>
+                <TextBlock Text="{sh:T 'Text size (pt)'}" Grid.Row="1" VerticalAlignment="Center"/>
                 <TextBox x:Name="TextSizeBox" Grid.Row="1" Grid.Column="1" Style="{StaticResource Field}" Margin="0,3"/>
             </Grid>
 
-            <TextBlock Text="SPOTLIGHT" Style="{StaticResource SectionHeader}"/>
+            <TextBlock Text="{sh:T 'SPOTLIGHT'}" Style="{StaticResource SectionHeader}"/>
             <StackPanel Orientation="Horizontal">
                 <Slider x:Name="DimSlider" Width="220" Minimum="20" Maximum="90" TickFrequency="5"
                         IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
                 <TextBlock x:Name="DimLabel" Margin="10,0,0,0" VerticalAlignment="Center"/>
             </StackPanel>
-            <TextBlock Style="{StaticResource Note}" Text="How much everything outside a spotlight is dimmed."/>
+            <TextBlock Style="{StaticResource Note}" Text="{sh:T 'How much everything outside a spotlight is dimmed.'}"/>
         </StackPanel>
+        </Grid>
+        </ScrollViewer>
 
         <TextBlock Grid.Row="2" Text="Sitch 0.2.0" Foreground="{DynamicResource Brush.TextDim}"
                    FontSize="11" HorizontalAlignment="Center" Margin="0,12,0,0"/>

@@ -14,7 +14,7 @@ public sealed class TrayController : IDisposable
     {
         _icon = new TaskbarIcon
         {
-            ToolTipText = "Sitch — Capture. Annotate. Share.",
+            ToolTipText = Loc.T("Sitch — Capture. Annotate. Share."),
             IconSource = new System.Windows.Media.Imaging.BitmapImage(
                 new Uri("pack://application:,,,/Assets/sitch.ico")),
             ContextMenu = BuildMenu(),
@@ -27,11 +27,11 @@ public sealed class TrayController : IDisposable
     {
         var menu = new ContextMenu();
 
-        var captureItem = Item($"Capture Region\t{App.Settings.CaptureHotkey}", () => App.Current.CaptureRegion());
+        var captureItem = Item($"{Loc.T("Capture Region")}\t{App.Settings.CaptureHotkey}", () => App.Current.CaptureRegion());
         menu.Items.Add(captureItem);
-        menu.Items.Add(Item("Capture Window", () => App.Current.CaptureWindow()));
+        menu.Items.Add(Item(Loc.T("Capture Window"), () => App.Current.CaptureWindow()));
 
-        var full = new MenuItem { Header = "Capture Full Screen" };
+        var full = new MenuItem { Header = Loc.T("Capture Full Screen") };
         full.SubmenuOpened += (_, _) =>
         {
             full.Items.Clear();
@@ -40,35 +40,35 @@ public sealed class TrayController : IDisposable
             {
                 int idx = i;
                 var m = monitors[i];
-                full.Items.Add(Item($"Display {i + 1} ({m.Bounds.Width}×{m.Bounds.Height}){(m.IsPrimary ? " — primary" : "")}",
+                full.Items.Add(Item(Loc.F("Display {0} ({1}×{2})", i + 1, m.Bounds.Width, m.Bounds.Height) + (m.IsPrimary ? Loc.T(" — primary") : ""),
                     () => App.Current.CaptureFullScreen(idx)));
             }
         };
         full.Items.Add(new MenuItem { Header = "…" }); // placeholder so the submenu arrow shows
         menu.Items.Add(full);
 
-        var recaptureItem = Item($"Recapture Last Region\t{App.Settings.RecaptureHotkey}", () => App.Current.RecaptureLast());
+        var recaptureItem = Item($"{Loc.T("Recapture Last Region")}\t{App.Settings.RecaptureHotkey}", () => App.Current.RecaptureLast());
         menu.Items.Add(recaptureItem);
-        var quickCopyItem = Item($"Quick Capture → Clipboard\t{App.Settings.QuickCopyHotkey}", () => App.Current.QuickCapture(toClipboard: true));
+        var quickCopyItem = Item($"{Loc.T("Quick Capture → Clipboard")}\t{App.Settings.QuickCopyHotkey}", () => App.Current.QuickCapture(toClipboard: true));
         // Hotkeys are rebindable in Settings — refresh the labels every time the menu opens.
         menu.Opened += (_, _) =>
         {
-            captureItem.Header = $"Capture Region\t{App.Settings.CaptureHotkey}";
-            recaptureItem.Header = $"Recapture Last Region\t{App.Settings.RecaptureHotkey}";
-            quickCopyItem.Header = $"Quick Capture → Clipboard\t{App.Settings.QuickCopyHotkey}";
+            captureItem.Header = $"{Loc.T("Capture Region")}\t{App.Settings.CaptureHotkey}";
+            recaptureItem.Header = $"{Loc.T("Recapture Last Region")}\t{App.Settings.RecaptureHotkey}";
+            quickCopyItem.Header = $"{Loc.T("Quick Capture → Clipboard")}\t{App.Settings.QuickCopyHotkey}";
         };
         menu.Items.Add(new Separator());
         menu.Items.Add(quickCopyItem);
-        menu.Items.Add(Item("Quick Capture → File", () => App.Current.QuickCapture(toClipboard: false)));
+        menu.Items.Add(Item(Loc.T("Quick Capture → File"), () => App.Current.QuickCapture(toClipboard: false)));
         menu.Items.Add(new Separator());
-        menu.Items.Add(Item("Open Image…", OpenImageDialog));
+        menu.Items.Add(Item(Loc.T("Open Image…"), OpenImageDialog));
         menu.Items.Add(new Separator());
 
         // The screenshot line (merged from Snapline): present only while it runs.
         var lineItem = new MenuItem();
         lineItem.Click += (_, _) => App.Current.Shelf?.Toggle();
-        var noteHost = new MenuItem { Header = "New Note" };
-        var lineSettings = Item("Line Settings…", () => App.Current.Shelf?.ShowSettings());
+        var noteHost = new MenuItem { Header = Loc.T("New Note") };
+        var lineSettings = Item(Loc.T("Line Settings…"), () => App.Current.Shelf?.ShowSettings());
         var lineSeparator = new Separator();
         menu.Items.Add(lineItem);
         menu.Items.Add(noteHost);
@@ -80,7 +80,7 @@ public sealed class TrayController : IDisposable
             var vis = shelf is null ? Visibility.Collapsed : Visibility.Visible;
             lineItem.Visibility = noteHost.Visibility = lineSettings.Visibility = lineSeparator.Visibility = vis;
             if (shelf is null) return;
-            lineItem.Header = $"{(shelf.IsRevealed ? "Hide" : "Show")} Screenshot Line\t{shelf.HotKeyText}";
+            lineItem.Header = $"{Loc.T(shelf.IsRevealed ? "Hide Screenshot Line" : "Show Screenshot Line")}\t{shelf.HotKeyText}";
             noteHost.Items.Clear();
             foreach (var color in Sitch.Shelf.Core.Notes.Colors)
             {
@@ -88,10 +88,10 @@ public sealed class TrayController : IDisposable
                 noteHost.Items.Add(Item(char.ToUpperInvariant(c[0]) + c[1..], () => App.Current.Shelf?.NewNote(c)));
             }
         };
-        menu.Items.Add(Item("Settings…", () => App.Current.ShowSettings()));
-        menu.Items.Add(Item("About Sitch", ShowAbout));
+        menu.Items.Add(Item(Loc.T("Settings…"), () => App.Current.ShowSettings()));
+        menu.Items.Add(Item(Loc.T("About Sitch"), ShowAbout));
         menu.Items.Add(new Separator());
-        menu.Items.Add(Item("Quit Sitch", () => App.Current.QuitRequested()));
+        menu.Items.Add(Item(Loc.T("Quit Sitch"), () => App.Current.QuitRequested()));
         return menu;
     }
 
@@ -106,7 +106,7 @@ public sealed class TrayController : IDisposable
     {
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff;*.webp|All files|*.*",
+            Filter = $"{Loc.T("Images")}|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff;*.webp|{Loc.T("All files")}|*.*",
         };
         if (dlg.ShowDialog() == true)
             App.Current.OpenImageFile(dlg.FileName);
@@ -115,9 +115,9 @@ public sealed class TrayController : IDisposable
     private static void ShowAbout()
     {
         MessageBox.Show(
-            "Sitch 0.2.0\n\nSkitch-style screenshot annotation for Windows.\nCapture. Annotate. Share.\n\n" +
+            "Sitch 0.2.0\n\n" + Loc.T("Skitch-style screenshot annotation for Windows.\nCapture. Annotate. Share.") + "\n\n" +
             "MIT License — © 2026 Josh Auriemma\ngithub.com/phalladar/sitch",
-            "About Sitch", MessageBoxButton.OK, MessageBoxImage.Information);
+            Loc.T("About Sitch"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     public void Dispose() => _icon.Dispose();

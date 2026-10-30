@@ -13,7 +13,7 @@ public sealed class WelcomeWindow : Window
 {
     public WelcomeWindow()
     {
-        Title = "Welcome to Sitch";
+        Title = Loc.T("Welcome to Sitch");
         Width = 440;
         SizeToContent = SizeToContent.Height;
         ResizeMode = ResizeMode.NoResize;
@@ -33,24 +33,24 @@ public sealed class WelcomeWindow : Window
         });
         var titles = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         titles.Children.Add(new TextBlock
-        { Text = "Sitch is ready", FontSize = 20, FontWeight = FontWeights.SemiBold });
-        var sub = new TextBlock { Text = "Capture. Annotate. Share.", FontSize = 13 };
+        { Text = Loc.T("Sitch is ready"), FontSize = 20, FontWeight = FontWeights.SemiBold });
+        var sub = new TextBlock { Text = Loc.T("Capture. Annotate. Share."), FontSize = 13 };
         sub.SetResourceReference(TextBlock.ForegroundProperty, "Brush.TextDim");
         titles.Children.Add(sub);
         header.Children.Add(titles);
         panel.Children.Add(header);
 
         panel.Children.Add(Line(
-            $"Press  {App.Settings.CaptureHotkey}  to capture — drag a region or click a window.",
+            Loc.F("Press  {0}  to capture — drag a region or click a window.", App.Settings.CaptureHotkey),
             topMargin: 20, bold: true));
         panel.Children.Add(Line(
-            "Sitch lives in your system tray: click the pink-arrow icon to capture, " +
-            "right-click it for window capture, full screen, timers and Settings."));
+            Loc.T("Sitch lives in your system tray: click the pink-arrow icon to capture, " +
+            "right-click it for window capture, full screen, timers and Settings.")));
         panel.Children.Add(Line(
-            "Tip: if you don't see the icon, it's in the  ^  overflow area next to the clock — " +
-            "drag it onto the taskbar to pin it."));
+            Loc.T("Tip: if you don't see the icon, it's in the  ^  overflow area next to the clock — " +
+            "drag it onto the taskbar to pin it.")));
         panel.Children.Add(Line(
-            "Every capture is copied to your clipboard automatically, ready to paste."));
+            Loc.T("Every capture is copied to your clipboard automatically, ready to paste.")));
 
         var buttons = new StackPanel
         {
@@ -58,10 +58,10 @@ public sealed class WelcomeWindow : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 22, 0, 0),
         };
-        var settings = new Button { Content = "Settings", Margin = new Thickness(0, 0, 8, 0) };
+        var settings = new Button { Content = Loc.T("Settings"), Margin = new Thickness(0, 0, 8, 0) };
         settings.SetResourceReference(StyleProperty, "GhostButton");
         settings.Click += (_, _) => { App.Current.ShowSettings(); Close(); };
-        var capture = new Button { Content = $"Capture now  ({App.Settings.CaptureHotkey})" };
+        var capture = new Button { Content = Loc.F("Capture now  ({0})", App.Settings.CaptureHotkey) };
         capture.SetResourceReference(StyleProperty, "PrimaryButton");
         capture.Click += (_, _) =>
         {

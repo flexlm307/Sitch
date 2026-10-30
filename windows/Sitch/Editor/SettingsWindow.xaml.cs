@@ -29,6 +29,19 @@ public partial class SettingsWindow : Window
         ThemeSystem.Checked += (_, _) => SetTheme("System");
         ThemeLight.Checked += (_, _) => SetTheme("Light");
         ThemeDark.Checked += (_, _) => SetTheme("Dark");
+        string startLanguage = s.Language;
+        (s.Language switch { "en" => LangEn, "zh" => LangZh, _ => LangSystem }).IsChecked = true;
+        void SetLanguage(string language)
+        {
+            if (_loading) return;
+            s.Language = language;
+            Save();
+            LangNote.Visibility = language == startLanguage ? Visibility.Collapsed : Visibility.Visible;
+        }
+        LangSystem.Checked += (_, _) => SetLanguage("System");
+        LangEn.Checked += (_, _) => SetLanguage("en");
+        LangZh.Checked += (_, _) => SetLanguage("zh");
+
         ChkTaskbar.IsChecked = s.ShowInTaskbar;
         ChkTaskbar.Click += (_, _) => { s.ShowInTaskbar = ChkTaskbar.IsChecked == true; Save(); };
         ChkLogin.IsChecked = StartupManager.IsEnabled();
@@ -42,7 +55,7 @@ public partial class SettingsWindow : Window
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Couldn't update startup entry.\n{ex.Message}", "Sitch");
+                MessageBox.Show(this, Loc.T("Couldn't update startup entry.") + $"\n{ex.Message}", "Sitch");
                 ChkLogin.IsChecked = StartupManager.IsEnabled();
             }
         };
@@ -66,6 +79,22 @@ public partial class SettingsWindow : Window
             if (!_loading && FormatCombo.SelectedItem is string f) { s.DefaultFormat = f; Save(); }
         };
 
+        ChkCompress.IsChecked = s.CompressWithMediaMini;
+        ChkCompress.Click += (_, _) => { s.CompressWithMediaMini = ChkCompress.IsChecked == true; Save(); };
+        MediaMiniBox.Text = s.MediaMiniFolder;
+        MediaMiniBox.LostFocus += (_, _) => { s.MediaMiniFolder = MediaMiniBox.Text.Trim(); Save(); };
+        BtnMediaMini.Click += (_, _) =>
+        {
+            var dlg = new Microsoft.Win32.OpenFolderDialog();
+            if (Directory.Exists(MediaMiniBox.Text)) dlg.InitialDirectory = MediaMiniBox.Text;
+            if (dlg.ShowDialog(this) != true) return;
+            MediaMiniBox.Text = s.MediaMiniFolder = dlg.FolderName;
+            Save();
+        };
+
+        ChkSnap.IsChecked = s.SnapToElements;
+        ChkSnap.Click += (_, _) => { s.SnapToElements = ChkSnap.IsChecked == true; Save(); };
+
         ChkAfterShow.IsChecked = s.AfterShowEditor;
         ChkAfterCopy.IsChecked = s.AfterCopy;
         ChkAfterSave.IsChecked = s.AfterSave;
@@ -86,7 +115,7 @@ public partial class SettingsWindow : Window
         BtnLineSettings.Click += (_, _) => App.Current.Shelf?.ShowSettings();
         SyncLineControls();
 
-        foreach (var t in new[] { "Off", "3 s", "5 s", "10 s" }) TimerCombo.Items.Add(t);
+        foreach (var t in new[] { Loc.T("Off"), Loc.T("3 s"), Loc.T("5 s"), Loc.T("10 s") }) TimerCombo.Items.Add(t);
         TimerCombo.SelectedIndex = s.TimerSeconds switch { 3 => 1, 5 => 2, 10 => 3, _ => 0 };
         TimerCombo.SelectionChanged += (_, _) =>
         {
@@ -153,8 +182,8 @@ public partial class SettingsWindow : Window
         var shelf = App.Current.Shelf;
         BtnLineSettings.IsEnabled = shelf is not null;
         ChkAfterHang.IsEnabled = App.Settings.LineEnabled;
-        LineHint.Text = shelf is not null ? $"Show or hide it with {shelf.HotKeyText}"
-            : App.Settings.LineEnabled && App.SnaplineRunning ? "Quit Snapline to use the line here" : "";
+        LineHint.Text = shelf is not null ? Loc.F("Show or hide it with {0}", shelf.HotKeyText)
+            : App.Settings.LineEnabled && App.SnaplineRunning ? Loc.T("Quit Snapline to use the line here") : "";
     }
 
     /// <summary>Click the box, press a combination, done. Esc reverts, Backspace also reverts.
@@ -166,7 +195,7 @@ public partial class SettingsWindow : Window
         box.GotKeyboardFocus += (_, _) =>
         {
             previous = box.Text;
-            box.Text = "Press keys…";
+            box.Text = Loc.T("Press keys…");
             recording = true;
             // Registered hotkeys swallow their chord, so it would fire a capture instead of
             // reaching this box.
@@ -200,7 +229,7 @@ public partial class SettingsWindow : Window
             if (App.HotkeyOwner(chord, slotId) is { } owner)
             {
                 SystemSounds.Beep.Play();
-                box.Text = $"{chord} is used by {owner}";
+                box.Text = Loc.F("{0} is used by {1}", chord, Loc.T(owner));
                 return;
             }
 

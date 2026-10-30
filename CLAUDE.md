@@ -60,7 +60,7 @@ Versioning & release and Guardrails cover both.
   quit; the app stays in the tray. Quit runs `App.QuitRequested()` (prompts dirty tabs).
 - **Screenshot line** (`Shelf/`, Mac `Sources/SitchShelf`): Snapline merged in. Captures hang via
   `ShelfController.HangBitmap`; the line's Mark up opens Sitch's editor with save-back. It keeps its
-  own settings, Arabic strings and scoped menu theme — see ARCHITECTURE.md before touching it.
+  own settings, strings (English/Chinese/Arabic) and scoped menu theme — see ARCHITECTURE.md before touching it.
 - **Single instance** (`Shell/SingleInstance.cs`) and **theming** (`App.xaml`
   `MergedDictionaries[0]` is the swappable active theme, replaced by `ThemeManager`).
 

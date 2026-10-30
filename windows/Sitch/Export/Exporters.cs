@@ -70,6 +70,7 @@ public static class Exporters
         for (int n = 2; File.Exists(path); n++)
             path = Path.Combine(folder, $"{baseName} ({n}).{fmt}");
         Save(bmp, path);
+        MediaMini.CompressLater(path);
         return path;
     }
 }

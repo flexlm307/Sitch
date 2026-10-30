@@ -32,7 +32,7 @@ public partial class EditorWindow : Window
 
     // Always the active tab's document/name — almost all editor code operates on "the current doc".
     private Document _doc = null!;
-    private string _docName = "Untitled";
+    private string _docName = Loc.T("Untitled");
     private readonly MonitorData? _targetMonitor;
     private IntPtr _hwnd;
     private double _dpi = 1.0;
@@ -139,7 +139,7 @@ public partial class EditorWindow : Window
         var tab = new DocTab
         {
             Doc = new Document(bitmap),
-            Name = string.IsNullOrWhiteSpace(name) ? "Untitled" : name,
+            Name = string.IsNullOrWhiteSpace(name) ? Loc.T("Untitled") : name,
             SaveBackPath = saveBackPath,
         };
         _tabs.Add(tab);
@@ -236,7 +236,7 @@ public partial class EditorWindow : Window
             Style = (Style)FindResource("IconButton"),
             Padding = new Thickness(3),
             Margin = new Thickness(6, 0, -3, 0),
-            ToolTip = "Close tab",
+            ToolTip = Loc.T("Close tab"),
             Content = new System.Windows.Shapes.Path
             {
                 Data = Geometry.Parse("M4,4 L12,12 M12,4 L4,12"),
@@ -488,7 +488,7 @@ public partial class EditorWindow : Window
                 Style = (Style)FindResource("RailTool"),
                 GroupName = "tools",
                 Content = ToolIcons.Create(kind),
-                ToolTip = name,
+                ToolTip = Loc.T(name),
             };
             rb.Checked += (_, _) => OnToolSelected(kind);
             _railButtons[kind] = rb;
@@ -542,7 +542,7 @@ public partial class EditorWindow : Window
         {
             Style = (Style)FindResource("IconButton"),
             Padding = new Thickness(3),
-            ToolTip = "Custom color…",
+            ToolTip = Loc.T("Custom color…"),
             Content = wheel,
         };
         custom.Click += (_, _) => ShowColorPicker(custom);
@@ -658,7 +658,7 @@ public partial class EditorWindow : Window
     private void BuildAspectCombo()
     {
         (string Label, double Ratio)[] presets =
-            [("Free", 0), ("Original", -1), ("1:1", 1), ("4:3", 4.0 / 3), ("3:2", 1.5), ("16:9", 16.0 / 9)];
+            [(Loc.T("Free"), 0), (Loc.T("Original"), -1), ("1:1", 1), ("4:3", 4.0 / 3), ("3:2", 1.5), ("16:9", 16.0 / 9)];
         foreach (var (label, ratio) in presets)
             AspectCombo.Items.Add(new ComboBoxItem { Content = label, Tag = ratio });
         AspectCombo.SelectedIndex = 0;
@@ -674,16 +674,16 @@ public partial class EditorWindow : Window
     private void BuildCanvasContextMenu()
     {
         var menu = new ContextMenu();
-        menu.Items.Add(MenuItemFor("Rotate Left", () => _doc.RotateFlip(RotateFlipKind.RotateLeft)));
-        menu.Items.Add(MenuItemFor("Rotate Right", () => _doc.RotateFlip(RotateFlipKind.RotateRight)));
-        menu.Items.Add(MenuItemFor("Flip Horizontal", () => _doc.RotateFlip(RotateFlipKind.FlipHorizontal)));
-        menu.Items.Add(MenuItemFor("Flip Vertical", () => _doc.RotateFlip(RotateFlipKind.FlipVertical)));
+        menu.Items.Add(MenuItemFor(Loc.T("Rotate Left"), () => _doc.RotateFlip(RotateFlipKind.RotateLeft)));
+        menu.Items.Add(MenuItemFor(Loc.T("Rotate Right"), () => _doc.RotateFlip(RotateFlipKind.RotateRight)));
+        menu.Items.Add(MenuItemFor(Loc.T("Flip Horizontal"), () => _doc.RotateFlip(RotateFlipKind.FlipHorizontal)));
+        menu.Items.Add(MenuItemFor(Loc.T("Flip Vertical"), () => _doc.RotateFlip(RotateFlipKind.FlipVertical)));
         menu.Items.Add(new Separator());
-        menu.Items.Add(MenuItemFor("Crop", () => _railButtons[ToolKind.Crop].IsChecked = true));
+        menu.Items.Add(MenuItemFor(Loc.T("Crop"), () => _railButtons[ToolKind.Crop].IsChecked = true));
         menu.Items.Add(new Separator());
-        menu.Items.Add(MenuItemFor("Bring Forward", () => Restack(+1)));
-        menu.Items.Add(MenuItemFor("Send Backward", () => Restack(-1)));
-        menu.Items.Add(MenuItemFor("Delete", DeleteSelection));
+        menu.Items.Add(MenuItemFor(Loc.T("Bring Forward"), () => Restack(+1)));
+        menu.Items.Add(MenuItemFor(Loc.T("Send Backward"), () => Restack(-1)));
+        menu.Items.Add(MenuItemFor(Loc.T("Delete"), DeleteSelection));
         menu.Opened += (_, _) =>
         {
             bool sel = Canvas.Selected is not null;
@@ -725,7 +725,7 @@ public partial class EditorWindow : Window
         _tool = kind;
         Canvas.SetTool(kind);
         ToolIconHost.Content = ToolIcons.Create(kind);
-        ToolNameLabel.Text = ToolIcons.RailOrder.First(t => t.Kind == kind).Name;
+        ToolNameLabel.Text = Loc.T(ToolIcons.RailOrder.First(t => t.Kind == kind).Name);
 
         if (App.Settings.RememberLastTool)
         {
@@ -956,7 +956,7 @@ public partial class EditorWindow : Window
     private void InsertImage()
     {
         var dlg = new Microsoft.Win32.OpenFileDialog
-        { Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff" };
+        { Filter = $"{Loc.T("Images")}|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff" };
         if (dlg.ShowDialog(this) != true) return;
         try
         {
@@ -982,7 +982,7 @@ public partial class EditorWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"Couldn't insert image.\n{ex.Message}", "Sitch");
+            MessageBox.Show(this, Loc.T("Couldn't insert image.") + $"\n{ex.Message}", "Sitch");
         }
     }
 
@@ -1223,7 +1223,7 @@ public partial class EditorWindow : Window
     private void ShowZoomMenu()
     {
         var menu = new ContextMenu();
-        menu.Items.Add(MenuItemFor("Fit", FitZoom));
+        menu.Items.Add(MenuItemFor(Loc.T("Fit"), FitZoom));
         foreach (var pct in new[] { 25, 50, 75, 100, 150, 200, 300 })
             menu.Items.Add(MenuItemFor($"{pct}%", () => Canvas.SetZoom(pct / 100.0)));
         menu.PlacementTarget = BtnZoomLabel;
@@ -1238,9 +1238,9 @@ public partial class EditorWindow : Window
     {
         CommitTextEdit();
         if (ClipboardHelper.CopyImage(RenderFinal()))
-            NotifyPopup.Show("Copied to clipboard.");
+            NotifyPopup.Show(Loc.T("Copied to clipboard."));
         else
-            NotifyPopup.Show("Clipboard is busy — try again.");
+            NotifyPopup.Show(Loc.T("Clipboard is busy — try again."));
     }
 
     private void ShowSaveMenu()
@@ -1248,7 +1248,7 @@ public partial class EditorWindow : Window
         var menu = new ContextMenu();
         if (_active.SaveBackPath is { } back)
         {
-            menu.Items.Add(MenuItemFor($"Save to {IOPath.GetFileName(back)}", Save));
+            menu.Items.Add(MenuItemFor(Loc.F("Save to {0}", IOPath.GetFileName(back)), Save));
             menu.Items.Add(new Separator());
         }
         foreach (var fmt in Exporters.Formats)
@@ -1259,7 +1259,7 @@ public partial class EditorWindow : Window
             menu.Items.Add(mi);
         }
         menu.Items.Add(new Separator());
-        menu.Items.Add(MenuItemFor("Save As…", SaveAs));
+        menu.Items.Add(MenuItemFor(Loc.T("Save As…"), SaveAs));
         menu.PlacementTarget = BtnSave;
         menu.IsOpen = true;
     }
@@ -1274,11 +1274,12 @@ public partial class EditorWindow : Window
             Exporters.Save(RenderFinal(), path);
             _doc.Dirty = false;
             App.Current.Shelf?.FileSaved(path);
-            NotifyPopup.Show($"Saved {IOPath.GetFileName(path)}");
+            NotifyPopup.Show(Loc.F("Saved {0}", IOPath.GetFileName(path)));
+            MediaMini.CompressLater(path, () => App.Current.Shelf?.FileSaved(path));
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"Save failed.\n{ex.Message}", "Sitch",
+            MessageBox.Show(this, Loc.T("Save failed.") + $"\n{ex.Message}", "Sitch",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -1299,11 +1300,12 @@ public partial class EditorWindow : Window
         {
             Exporters.Save(RenderFinal(), dlg.FileName);
             _doc.Dirty = false;
-            NotifyPopup.Show($"Saved {IOPath.GetFileName(dlg.FileName)}");
+            NotifyPopup.Show(Loc.F("Saved {0}", IOPath.GetFileName(dlg.FileName)));
+            MediaMini.CompressLater(dlg.FileName);
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"Save failed.\n{ex.Message}", "Sitch",
+            MessageBox.Show(this, Loc.T("Save failed.") + $"\n{ex.Message}", "Sitch",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -1359,7 +1361,7 @@ public partial class EditorWindow : Window
             return;
         }
         if (_doc.Annotations.Count == 0) return;
-        if (MessageBox.Show(this, "Remove all annotations?", "Sitch",
+        if (MessageBox.Show(this, Loc.T("Remove all annotations?"), "Sitch",
                 MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
         {
             _doc.PushUndo();
@@ -1477,7 +1479,7 @@ public partial class EditorWindow : Window
         // Crop/rotate/flip count as changes too; a fully undone doc counts as pristine.
         if (!_doc.Dirty || IsPristine(_doc)) return true;
         var result = MessageBox.Show(this,
-            $"“{_docName}” has unsaved changes. Save before closing?",
+            Loc.F("“{0}” has unsaved changes. Save before closing?", _docName),
             "Sitch", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         switch (result)
         {
