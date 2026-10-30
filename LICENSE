@@ -29,3 +29,12 @@ Copyright (c) 2026 Snapline contributors
 Portions derived from Tendedero, Copyright (c) 2025 Alejandro Buján Pampín
 
 The permission notice and warranty disclaimer above apply to those portions as well.
+
+---
+
+The scrolling-capture stitcher (windows/Sitch/Capture/ScrollStitcher.cs) and the capture magnifier
+(windows/Sitch/Capture/OverlayWindow.cs) follow the approach of Evan (evan-ocr), also under the MIT License:
+
+Copyright (c) 2026 evan
+
+The permission notice and warranty disclaimer above apply to those portions as well.
