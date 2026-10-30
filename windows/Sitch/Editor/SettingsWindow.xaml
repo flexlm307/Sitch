@@ -99,6 +99,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Text="{sh:T 'Capture'}" VerticalAlignment="Center"/>
                 <TextBox x:Name="HotkeyBox" Grid.Column="1" Style="{StaticResource Field}" IsReadOnly="True"
@@ -109,6 +110,10 @@
                          ToolTip="{sh:T 'Click, then press the new key combination'}"/>
                 <TextBlock Text="{sh:T 'Capture to clipboard'}" Grid.Row="2" VerticalAlignment="Center"/>
                 <TextBox x:Name="QuickCopyBox" Grid.Row="2" Grid.Column="1" Style="{StaticResource Field}"
+                         IsReadOnly="True" Margin="0,3" Cursor="Hand"
+                         ToolTip="{sh:T 'Click, then press the new key combination'}"/>
+                <TextBlock Text="{sh:T 'Pin clipboard image'}" Grid.Row="3" VerticalAlignment="Center"/>
+                <TextBox x:Name="PinBox" Grid.Row="3" Grid.Column="1" Style="{StaticResource Field}"
                          IsReadOnly="True" Margin="0,3" Cursor="Hand"
                          ToolTip="{sh:T 'Click, then press the new key combination'}"/>
             </Grid>
@@ -147,7 +152,7 @@
             <TextBlock Text="{sh:T 'SNAPPING'}" Style="{StaticResource SectionHeader}"/>
             <CheckBox x:Name="ChkSnap" Content="{sh:T 'Snap to the element under the pointer'}"/>
             <TextBlock Style="{StaticResource Note}"
-                       Text="{sh:T 'Hover highlights the control, page or window under the pointer; the mouse wheel steps out to its parent and back. Click to capture it.'}"/>
+                       Text="{sh:T 'Hover highlights the control, page or window under the pointer; the mouse wheel steps out to its parent and back. Click to capture it, or press F3 to pin it on screen.'}"/>
             <CheckBox x:Name="ChkMagnifier" Margin="0,10,0,0" Content="{sh:T 'Show a magnifier and the colour under the pointer'}"/>
             <TextBlock Style="{StaticResource Note}" Text="{sh:T 'While capturing, press C to copy the colour as HEX, Shift+C as RGB.'}"/>
 

@@ -150,6 +150,10 @@ public sealed class OverlayWindow : Window
             case Key.Right: _controller.NudgeSelection(step, 0, shift); e.Handled = true; break;
             case Key.Up: _controller.NudgeSelection(0, -step, shift); e.Handled = true; break;
             case Key.Down: _controller.NudgeSelection(0, step, shift); e.Handled = true; break;
+            case Key.F3:
+                _controller.PinTarget();
+                e.Handled = true;
+                break;
             case Key.C when Keyboard.Modifiers is ModifierKeys.None or ModifierKeys.Shift:
                 _controller.CopyColor(asRgb: shift);
                 e.Handled = true;

@@ -423,6 +423,7 @@ public partial class EditorWindow : Window
         BtnZoomLabel.Click += (_, _) => ShowZoomMenu();
         BtnCopy.Click += (_, _) => CopyImage();
         BtnOcr.Click += (_, _) => ExtractText();
+        BtnPin.Click += (_, _) => PinToScreen();
         BtnSave.Click += (_, _) => ShowSaveMenu();
         BtnShare.Click += (_, _) => ShareImage();
         BtnSettings.Click += (_, _) => App.Current.ShowSettings();
@@ -1244,6 +1245,13 @@ public partial class EditorWindow : Window
             NotifyPopup.Show(Loc.T("Clipboard is busy — try again."));
     }
 
+    /// <summary>The tab as it looks now (marks flattened), floating on top of everything.</summary>
+    private void PinToScreen()
+    {
+        CommitTextEdit();
+        Pins.Pin(RenderFinal());
+    }
+
     private OcrWindow? _ocrWindow;
 
     /// <summary>Windows' built-in OCR over what the tab shows now (blur/pixelate redactions included).</summary>
@@ -1475,6 +1483,10 @@ public partial class EditorWindow : Window
                 break;
             case Key.O when ctrl && shift:
                 ExtractText();
+                e.Handled = true;
+                break;
+            case Key.F3:
+                PinToScreen();
                 e.Handled = true;
                 break;
             case Key.S when ctrl:

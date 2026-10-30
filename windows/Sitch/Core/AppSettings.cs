@@ -23,6 +23,8 @@ public class AppSettings
     public string RecaptureHotkey { get; set; } = "Ctrl+Alt+Shift+4";
     /// <summary>Quick Capture → Clipboard (C for copy).</summary>
     public string QuickCopyHotkey { get; set; } = "Ctrl+Alt+Shift+C";
+    /// <summary>Pin the clipboard image on top of everything (Shell.Pins).</summary>
+    public string PinHotkey { get; set; } = "Ctrl+Alt+P";
     public string DefaultSaveFolder { get; set; } = "";
     /// <summary>"png" | "jpg" | "pdf" | "tiff"</summary>
     public string DefaultFormat { get; set; } = "png";

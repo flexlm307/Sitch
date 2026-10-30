@@ -112,6 +112,11 @@ capture orchestration, window management), `app.manifest` (PMv2), `Sitch.csproj`
 - **Magnifier** (`ShowMagnifier`, Region mode): `OverlayVisual.DrawMagnifier` zooms 15x15 physical
   pixels of the frozen frame around the pointer; C / Shift+C copy the colour as HEX / RGB and end
   the capture (`CaptureController.CopyColor`).
+- **Pins** (`Shell/PinWindow.cs`): a capture floating above every window at 1:1 physical pixels
+  (window placed with SetWindowPos in physical px, image sized from the monitor's DPI, re-sized in
+  `OnDpiChanged`). Sources: F3 in the overlay (`CaptureController.PinTarget` pins what a click would
+  take, in place), F3 / the pin button in the editor, the line's "Pin to screen", and the global
+  `PinHotkey` (clipboard image). Wheel zooms, Ctrl+wheel sets opacity, Esc / double-click closes.
 - **Keyboard capture:** arrows define/nudge the selection, Shift+arrows resize, Ctrl = 10px steps,
   Enter confirms, **Esc abandons the whole capture** (single press — `OverlayWindow.OnKeyDown` →
   `CaptureController.Cancel`; the overlay under the cursor takes keyboard focus in

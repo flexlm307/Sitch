@@ -69,6 +69,7 @@ public static class Strings
 
     public static string Copy => L("Copy");
     public static string CopyText => L("Copy text");
+    public static string PinToScreen => L("Pin to screen");
     public static string Open => L("Open");
     public static string Edit => L("Edit");
     public static string MarkUp => L("Mark up");
@@ -187,6 +188,7 @@ public static class Strings
         ["Quit Sitch"] = "إنهاء Sitch",
         ["Copy"] = "نسخ",
         ["Copy text"] = "نسخ النص",
+        ["Pin to screen"] = "تثبيت على الشاشة",
         ["Open"] = "فتح",
         ["Edit"] = "تحرير",
         ["Mark up"] = "تعليم",
@@ -290,6 +292,7 @@ public static class Strings
         ["Quit Sitch"] = "退出 Sitch",
         ["Copy"] = "复制",
         ["Copy text"] = "复制文字",
+        ["Pin to screen"] = "贴到屏幕",
         ["Open"] = "打开",
         ["Edit"] = "编辑",
         ["Mark up"] = "标注",

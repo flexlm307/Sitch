@@ -218,6 +218,22 @@ public sealed class CaptureController
         return new Int32Rect(x1, y1, Math.Max(1, x2 - x1), Math.Max(1, y2 - y1));
     }
 
+    /// <summary>
+    /// F3 in the overlay: what a click (or Enter) would capture is pinned in place instead — the keyboard
+    /// selection, a drag still in progress, the snapped element or the hovered window.
+    /// </summary>
+    internal void PinTarget()
+    {
+        Int32Rect? rect = HasSelection ? SelectionRect
+            : HoveredElement?.Bounds ?? (_mode != CaptureMode.FullScreen ? HoveredWindow?.Bounds : null);
+        if (rect is not { Width: >= 4, Height: >= 4 } r || _frozen is null) return;
+        r = ClipToScreen(r);
+        var bmp = ScreenFreezer.Crop(_frozen, _frozenBounds, r);
+        CloseOverlays();
+        Cleanup();
+        Shell.Pins.Pin(bmp, new PixelRect(r.X, r.Y, r.Width, r.Height));
+    }
+
     /// <summary>The frozen frame's colour at a physical point, or null off-screen.</summary>
     internal System.Windows.Media.Color? PixelAt(Point physical)
     {

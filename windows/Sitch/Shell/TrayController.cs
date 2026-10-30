@@ -62,6 +62,15 @@ public sealed class TrayController : IDisposable
         menu.Items.Add(Item(Loc.T("Quick Capture → File"), () => App.Current.QuickCapture(toClipboard: false)));
         menu.Items.Add(new Separator());
         menu.Items.Add(Item(Loc.T("Open Image…"), OpenImageDialog));
+        var pinItem = Item($"{Loc.T("Pin Clipboard Image")}\t{App.Settings.PinHotkey}", Pins.PinClipboard);
+        var unpinAll = Item(Loc.T("Close All Pins"), Pins.CloseAll);
+        menu.Items.Add(pinItem);
+        menu.Items.Add(unpinAll);
+        menu.Opened += (_, _) =>
+        {
+            pinItem.Header = $"{Loc.T("Pin Clipboard Image")}\t{App.Settings.PinHotkey}";
+            unpinAll.Visibility = Pins.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        };
         menu.Items.Add(new Separator());
 
         // The screenshot line (merged from Snapline): present only while it runs.
@@ -85,7 +94,7 @@ public sealed class TrayController : IDisposable
             foreach (var color in Sitch.Shelf.Core.Notes.Colors)
             {
                 var c = color;
-                noteHost.Items.Add(Item(char.ToUpperInvariant(c[0]) + c[1..], () => App.Current.Shelf?.NewNote(c)));
+                noteHost.Items.Add(Item(Sitch.Shelf.UI.Strings.NoteName(c), () => App.Current.Shelf?.NewNote(c)));
             }
         };
         menu.Items.Add(Item(Loc.T("Settings…"), () => App.Current.ShowSettings()));

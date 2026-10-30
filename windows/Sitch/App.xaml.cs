@@ -17,6 +17,7 @@ public partial class App : Application
     public const int HkCapture = 1;
     public const int HkRecapture = 2;
     public const int HkQuickCopy = 3;
+    public const int HkPin = 4;
 
     /// <summary>The global hotkeys in Settings/tray order; Name labels them in conflict messages.</summary>
     public static readonly (int Id, string Name, Func<AppSettings, string> Get)[] HotkeySlots =
@@ -24,6 +25,7 @@ public partial class App : Application
         (HkCapture, "Capture", s => s.CaptureHotkey),
         (HkRecapture, "Recapture last region", s => s.RecaptureHotkey),
         (HkQuickCopy, "Capture to clipboard", s => s.QuickCopyHotkey),
+        (HkPin, "Pin clipboard image", s => s.PinHotkey),
     ];
 
     private SingleInstance? _instance;
@@ -181,6 +183,7 @@ public partial class App : Application
             case HkCapture: CaptureRegion(); break;
             case HkRecapture: RecaptureLast(); break;
             case HkQuickCopy: QuickCapture(toClipboard: true); break;
+            case HkPin: Pins.PinClipboard(); break;
         }
     }
 
