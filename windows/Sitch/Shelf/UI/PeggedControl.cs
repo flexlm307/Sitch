@@ -546,6 +546,8 @@ public sealed class PeggedControl : Canvas
             menu.Items.Add(MenuItemFor(Strings.EditInPaint, () => _line.EditExternal(id)));
             if (Ocr.Available) menu.Items.Add(MenuItemFor(Strings.CopyText, () => _line.CopyText(id)));
             menu.Items.Add(MenuItemFor(Strings.PinToScreen, () => { if (_line.Find(id) is { } item) global::Sitch.Shell.Pins.PinFile(item.Path); }));
+            if (global::Sitch.Export.MinerU.Configured)
+                menu.Items.Add(MenuItemFor(Strings.RestoreMarkdown, () => { if (_line.Find(id) is { } item) global::Sitch.Export.MinerU.RestoreFile(item.Path); }));
         }
         menu.Items.Add(MenuItemFor(Strings.ShowInExplorer, () => _line.Reveal(id)));
         var keep = MenuItemFor(Strings.KeepOnLine, () => _line.TogglePin(id));

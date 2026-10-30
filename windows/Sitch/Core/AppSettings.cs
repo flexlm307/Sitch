@@ -49,6 +49,8 @@ public class AppSettings
     public bool ShowMagnifier { get; set; } = true;
     /// <summary>"Windows" (built in) | "RapidOCR" (external Python worker, see Shelf.Core.RapidOcr).</summary>
     public string OcrEngine { get; set; } = "Windows";
+    /// <summary>MinerU's virtual environment (ASCII path) for "Restore as Markdown"; empty hides it.</summary>
+    public string MinerUFolder { get; set; } = "";
     /// <summary>Hang every capture on the screenshot line (the merged Snapline), when the line is on.</summary>
     public bool AfterHang { get; set; } = true;
     /// <summary>The screenshot line along the top of the screen. Its own settings live in Shelf.Core.Settings.</summary>

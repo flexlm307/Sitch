@@ -424,6 +424,10 @@ public partial class EditorWindow : Window
         BtnCopy.Click += (_, _) => CopyImage();
         BtnOcr.Click += (_, _) => ExtractText();
         BtnPin.Click += (_, _) => PinToScreen();
+        BtnMarkdown.Click += (_, _) => RestoreMarkdown();
+        // Only when MinerU is set up (Settings > Editor); re-checked when the window regains focus.
+        BtnMarkdown.Visibility = MinerU.Configured ? Visibility.Visible : Visibility.Collapsed;
+        Activated += (_, _) => BtnMarkdown.Visibility = MinerU.Configured ? Visibility.Visible : Visibility.Collapsed;
         BtnSave.Click += (_, _) => ShowSaveMenu();
         BtnShare.Click += (_, _) => ShareImage();
         BtnSettings.Click += (_, _) => App.Current.ShowSettings();
@@ -1252,6 +1256,12 @@ public partial class EditorWindow : Window
         Pins.Pin(RenderFinal());
     }
 
+    private void RestoreMarkdown()
+    {
+        CommitTextEdit();
+        MinerU.Restore(RenderFinal());
+    }
+
     private OcrWindow? _ocrWindow;
 
     /// <summary>Windows' built-in OCR over what the tab shows now (blur/pixelate redactions included).</summary>
@@ -1487,6 +1497,10 @@ public partial class EditorWindow : Window
                 break;
             case Key.F3:
                 PinToScreen();
+                e.Handled = true;
+                break;
+            case Key.M when ctrl && shift:
+                RestoreMarkdown();
                 e.Handled = true;
                 break;
             case Key.S when ctrl:

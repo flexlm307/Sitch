@@ -108,6 +108,18 @@ public partial class SettingsWindow : Window
         OcrWindows.Checked += (_, _) => { if (_loading) return; s.OcrEngine = "Windows"; Save(); Shelf.Core.RapidOcr.Stop(); };
         OcrRapid.Checked += (_, _) => { if (_loading) return; s.OcrEngine = "RapidOCR"; Save(); };
 
+        MinerUBox.Text = s.MinerUFolder;
+        MinerUBox.LostFocus += (_, _) => { s.MinerUFolder = MinerUBox.Text.Trim(); Save(); Export.MinerU.Stop(); };
+        BtnMinerU.Click += (_, _) =>
+        {
+            var dlg = new Microsoft.Win32.OpenFolderDialog();
+            if (Directory.Exists(MinerUBox.Text)) dlg.InitialDirectory = MinerUBox.Text;
+            if (dlg.ShowDialog(this) != true) return;
+            MinerUBox.Text = s.MinerUFolder = dlg.FolderName;
+            Save();
+            Export.MinerU.Stop();
+        };
+
         ChkMagnifier.IsChecked = s.ShowMagnifier;
         ChkMagnifier.Click += (_, _) => { s.ShowMagnifier = ChkMagnifier.IsChecked == true; Save(); };
 

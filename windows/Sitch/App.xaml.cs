@@ -109,6 +109,7 @@ public partial class App : Application
         _tray?.Dispose();
         _instance?.Dispose();
         Sitch.Shelf.Core.RapidOcr.Stop();
+        MinerU.Stop();
         base.OnExit(e);
     }
 

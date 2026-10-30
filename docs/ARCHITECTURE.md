@@ -109,6 +109,13 @@ capture orchestration, window management), `app.manifest` (PMv2), `Sitch.csproj`
   `Editor/OcrWindow.cs`). `OcrEngine` = "Windows" (built in) or "RapidOCR": `RapidOcr.cs` keeps one
   Python worker (`pip install rapidocr`) alive across reads (model load costs seconds), exits after
   10 idle minutes, and on any failure Windows' engine reads instead.
+- **Restore as Markdown** (`Export/MinerU.cs`, shown only with `MinerUFolder` set): editor "MD" /
+  Ctrl+Shift+M, a pin's menu, the line's menu. One `mineru-api` server (`python -m mineru.cli.fast_api`,
+  localhost, free port — the .exe launcher resolves the ASCII junction back to a non-ASCII path where
+  fastText fails) starts on first use (~30 s), then ~3 s per capture; `/file_parse` returns a ZIP that is
+  unpacked to "Sitch … (Markdown)" (md + images/). Uses the environment's `mineru-hf.json` and sibling
+  `mineru-model-cache\huggingface` when present. The server sits in a kill-on-close job object, so it
+  ends with Sitch even after a crash; it also exits after 15 idle minutes.
 - **Magnifier** (`ShowMagnifier`, Region mode): `OverlayVisual.DrawMagnifier` zooms 15x15 physical
   pixels of the frozen frame around the pointer; C / Shift+C copy the colour as HEX / RGB and end
   the capture (`CaptureController.CopyColor`).

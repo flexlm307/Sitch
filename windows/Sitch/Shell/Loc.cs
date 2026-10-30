@@ -251,6 +251,17 @@ public static class Loc
         ["Hover highlights the control, page or window under the pointer; the mouse wheel steps out to its parent and back. Click to capture it, or press F3 to pin it on screen."] =
             "悬停时高亮鼠标下的控件、页面或窗口；滚动鼠标滚轮可切换到上一级元素或返回。单击截取，按 F3 贴到屏幕上。",
         ["TEXT RECOGNITION (OCR)"] = "文字识别（OCR）",
+        ["RESTORE AS MARKDOWN (MINERU)"] = "还原为 Markdown（MinerU）",
+        ["The MinerU environment folder, by an ASCII path (e.g. %USERPROFILE%\\.local\\mineru-3.4.4). Tables, formulas and figures come back as Markdown with images. The first run loads the models (about half a minute); later ones take seconds. Empty hides the feature."] =
+            "MinerU 环境文件夹，请用不含中文的路径（例如 %USERPROFILE%\\.local\\mineru-3.4.4）。表格、公式和插图会还原成带图片的 Markdown。第一次要加载模型（约半分钟），之后每次几秒。留空则不显示此功能。",
+        ["Restore as Markdown with MinerU (Ctrl+Shift+M)"] = "用 MinerU 还原为 Markdown（Ctrl+Shift+M）",
+        ["Restore as Markdown (MinerU)"] = "还原为 Markdown（MinerU）",
+        ["Set the MinerU folder in Settings > Editor first."] = "请先在 设置 > 编辑器 中填写 MinerU 文件夹。",
+        ["MinerU is still working on the previous capture."] = "MinerU 还在处理上一张截图。",
+        ["Restoring as Markdown…"] = "正在还原为 Markdown…",
+        ["Starting MinerU (the first run loads its models, about half a minute)…"] = "正在启动 MinerU（第一次要加载模型，约半分钟）…",
+        ["Restored as Markdown in {0} — the text is on the clipboard"] = "已还原为 Markdown：{0} — 文本已复制到剪贴板",
+        ["MinerU failed."] = "MinerU 处理失败。",
         ["Windows built-in"] = "Windows 自带",
         ["RapidOCR (better for Chinese and mixed text)"] = "RapidOCR（中文和中英混排更准）",
         ["RapidOCR needs Python and: pip install rapidocr. The first read after starting Sitch takes a few seconds while it loads; if it fails, Windows OCR is used."] =

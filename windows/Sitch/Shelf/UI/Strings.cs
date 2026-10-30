@@ -70,6 +70,7 @@ public static class Strings
     public static string Copy => L("Copy");
     public static string CopyText => L("Copy text");
     public static string PinToScreen => L("Pin to screen");
+    public static string RestoreMarkdown => L("Restore as Markdown (MinerU)");
     public static string Open => L("Open");
     public static string Edit => L("Edit");
     public static string MarkUp => L("Mark up");
@@ -293,6 +294,7 @@ public static class Strings
         ["Copy"] = "复制",
         ["Copy text"] = "复制文字",
         ["Pin to screen"] = "贴到屏幕",
+        ["Restore as Markdown (MinerU)"] = "还原为 Markdown（MinerU）",
         ["Open"] = "打开",
         ["Edit"] = "编辑",
         ["Mark up"] = "标注",

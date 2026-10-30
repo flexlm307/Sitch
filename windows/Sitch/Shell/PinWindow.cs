@@ -196,6 +196,7 @@ public sealed class PinWindow : Window
         menu.Items.Add(Item(Loc.T("Save As…") + "\tCtrl+S", SaveAs));
         menu.Items.Add(Item(Loc.T("Open in editor"), () => { App.Current.OpenEditor(_bitmap, Loc.T("Untitled")); Close(); }));
         menu.Items.Add(Item(Loc.T("Extract text"), ExtractText));
+        if (MinerU.Configured) menu.Items.Add(Item(Loc.T("Restore as Markdown (MinerU)"), () => MinerU.Restore(_bitmap)));
         menu.Items.Add(new Separator());
         menu.Items.Add(Item(Loc.T("Actual size") + "\tCtrl+0", () => SetZoom(1)));
         var opacity = new MenuItem { Header = Loc.T("Opacity") };

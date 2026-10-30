@@ -38,6 +38,10 @@ Element snapping, Language, MediaMini, OCR, Magnifier, Pins, Scrolling capture, 
 - **Scrolling capture**: Ctrl+Alt+Shift+S or tray or S; user scrolls, Done routes the long image.
 - **Recording**: Ctrl+Alt+Shift+R or tray or R; GIF (12 fps, two-pass palette) or MP4 (30 fps), via FFmpeg.
 - **MediaMini**: optional; after Save / Save As / quick-save runs `<folder>/cli.py optimize … --in-place`.
+- **Restore as Markdown (MinerU)**: editor "MD" (Ctrl+Shift+M), pin and line menus; shown when Settings >
+  Editor has the MinerU environment folder (here `%USERPROFILE%\.local\mineru-3.4.4`, an ASCII junction to
+  `Anki卡片制作\.tools\mineru-3.4.4`). Persistent `mineru-api`: ~30 s first run, ~3 s after; tables come
+  back as HTML tables, figures as `images/`.
 
 External tools are found on the PATH (`python`, `ffmpeg`); none ship with Sitch. On this PC: Python 3.12
 with `rapidocr` 3.10, FFmpeg 9.0 (winget Gyan.FFmpeg), MediaMini at `C:\Users\cxpan\Tools\MediaMini`.
