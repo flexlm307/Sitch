@@ -26,6 +26,10 @@ final class ScrollCaptureSession {
     private let stitchQueue = DispatchQueue(label: "Sitch.ScrollStitch", qos: .userInitiated)
     private let latestLock = NSLock()
     private var stitching = false
+    // Debugging aid: `defaults write io.github.phalladar.Sitch ScrollFrameDump <folder>` saves every sampled
+    // frame there as raw BGRA (`NNNN_<width>x<height>.bgra`), for replaying a real capture through the stitcher.
+    private nonisolated let dumpFolder = UserDefaults.standard.string(forKey: "ScrollFrameDump")
+    private nonisolated(unsafe) var dumped = 0
 
     /// `rect`: global Quartz points inside `display`.
     static func start(rect: CGRect, display: DisplayGeometry) {
@@ -73,6 +77,12 @@ final class ScrollCaptureSession {
             guard let frame = RegionStream.bgra(box.buffer) else {
                 DispatchQueue.main.async { MainActor.assumeIsolated { self.stitching = false } }
                 return
+            }
+            if let dumpFolder {
+                let url = URL(fileURLWithPath: dumpFolder).appendingPathComponent(String(format: "%04d_%dx%d.bgra", dumped, frame.width, frame.height))
+                try? FileManager.default.createDirectory(atPath: dumpFolder, withIntermediateDirectories: true)
+                try? Data(frame.bytes).write(to: url)
+                dumped += 1
             }
             let step: StitchStep
             if let stitcher {
