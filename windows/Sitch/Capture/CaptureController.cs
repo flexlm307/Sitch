@@ -235,7 +235,13 @@ public sealed class CaptureController
     }
 
     /// <summary>S in the overlay: start a scrolling capture of what a click would take.</summary>
-    internal void ScrollTarget()
+    internal void ScrollTarget() => HandOff(Shell.ScrollCaptureSession.Start);
+
+    /// <summary>R in the overlay: record what a click would take (format from Settings).</summary>
+    internal void RecordTarget() => HandOff(r => Shell.RecordingSession.Start(r, App.Settings.RecordFormat));
+
+    /// <summary>Ends the capture and gives the target (selection, snapped element or window) to a live session.</summary>
+    private void HandOff(Action<Int32Rect> start)
     {
         Int32Rect? rect = HasSelection ? SelectionRect
             : HoveredElement?.Bounds ?? (_mode != CaptureMode.FullScreen ? HoveredWindow?.Bounds : null);
@@ -243,7 +249,7 @@ public sealed class CaptureController
         r = ClipToScreen(r);
         CloseOverlays();
         Cleanup();
-        Shell.ScrollCaptureSession.Start(r);
+        start(r);
     }
 
     /// <summary>The frozen frame's colour at a physical point, or null off-screen.</summary>

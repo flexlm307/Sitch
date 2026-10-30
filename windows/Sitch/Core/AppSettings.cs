@@ -27,6 +27,11 @@ public class AppSettings
     public string PinHotkey { get; set; } = "Ctrl+Alt+P";
     /// <summary>Scrolling capture: pick a region, scroll it, get one long image.</summary>
     public string ScrollHotkey { get; set; } = "Ctrl+Alt+Shift+S";
+    /// <summary>Screen recording (FFmpeg): pick a region, record it to RecordFormat.</summary>
+    public string RecordHotkey { get; set; } = "Ctrl+Alt+Shift+R";
+    /// <summary>"gif" | "mp4"</summary>
+    public string RecordFormat { get; set; } = "gif";
+    public bool RecordPointer { get; set; } = true;
     public string DefaultSaveFolder { get; set; } = "";
     /// <summary>"png" | "jpg" | "pdf" | "tiff"</summary>
     public string DefaultFormat { get; set; } = "png";

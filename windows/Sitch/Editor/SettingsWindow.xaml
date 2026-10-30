@@ -101,6 +101,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Text="{sh:T 'Capture'}" VerticalAlignment="Center"/>
                 <TextBox x:Name="HotkeyBox" Grid.Column="1" Style="{StaticResource Field}" IsReadOnly="True"
@@ -119,6 +120,10 @@
                          ToolTip="{sh:T 'Click, then press the new key combination'}"/>
                 <TextBlock Text="{sh:T 'Scrolling capture'}" Grid.Row="4" VerticalAlignment="Center"/>
                 <TextBox x:Name="ScrollBox" Grid.Row="4" Grid.Column="1" Style="{StaticResource Field}"
+                         IsReadOnly="True" Margin="0,3" Cursor="Hand"
+                         ToolTip="{sh:T 'Click, then press the new key combination'}"/>
+                <TextBlock Text="{sh:T 'Record screen'}" Grid.Row="5" VerticalAlignment="Center"/>
+                <TextBox x:Name="RecordBox" Grid.Row="5" Grid.Column="1" Style="{StaticResource Field}"
                          IsReadOnly="True" Margin="0,3" Cursor="Hand"
                          ToolTip="{sh:T 'Click, then press the new key combination'}"/>
             </Grid>
@@ -154,10 +159,19 @@
             <TextBlock Style="{StaticResource Note}"
                        Text="{sh:T 'After each save, Sitch runs cli.py from MediaMini on the PNG or JPG in the background and replaces it only when it gets smaller. Needs Python on the PATH.'}"/>
 
+            <TextBlock Text="{sh:T 'RECORDING'}" Style="{StaticResource SectionHeader}"/>
+            <StackPanel Orientation="Horizontal">
+                <RadioButton x:Name="RecGif" GroupName="rec" Content="GIF" Margin="0,0,18,0"/>
+                <RadioButton x:Name="RecMp4" GroupName="rec" Content="{sh:T 'Video (MP4)'}"/>
+            </StackPanel>
+            <CheckBox x:Name="ChkRecPointer" Content="{sh:T 'Show the pointer in recordings'}"/>
+            <TextBlock Style="{StaticResource Note}"
+                       Text="{sh:T 'Recording uses FFmpeg (winget install Gyan.FFmpeg). GIFs stop after 1 minute, videos after 30. The file is saved and put on the clipboard.'}"/>
+
             <TextBlock Text="{sh:T 'SNAPPING'}" Style="{StaticResource SectionHeader}"/>
             <CheckBox x:Name="ChkSnap" Content="{sh:T 'Snap to the element under the pointer'}"/>
             <TextBlock Style="{StaticResource Note}"
-                       Text="{sh:T 'Hover highlights the control, page or window under the pointer; the mouse wheel steps out to its parent and back. Click to capture it, press F3 to pin it on screen, or S to start a scrolling capture of it.'}"/>
+                       Text="{sh:T 'Hover highlights the control, page or window under the pointer; the mouse wheel steps out to its parent and back. Click to capture it, press F3 to pin it, S for a scrolling capture, or R to record it.'}"/>
             <CheckBox x:Name="ChkMagnifier" Margin="0,10,0,0" Content="{sh:T 'Show a magnifier and the colour under the pointer'}"/>
             <TextBlock Style="{StaticResource Note}" Text="{sh:T 'While capturing, press C to copy the colour as HEX, Shift+C as RGB.'}"/>
 

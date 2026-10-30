@@ -125,6 +125,13 @@ capture orchestration, window management), `app.manifest` (PMv2), `Sitch.csproj`
   whole-pixel scrolling (browsers, editors); fractional WPF scrolling re-rasterizes text and can't match
   exactly. A click-through frame sits just outside the region; the bar is WS_EX_NOACTIVATE so focus stays
   in the scrolled app.
+  The frame and bar are `Shell/RegionChrome.cs`, shared with recording; both are re-placed in physical
+  px after a DPI change (WPF rescales a window moved onto a monitor with another scale).
+- **Recording** (`Shell/RecordingSession.cs`, `Capture/FrameGrabber.cs`, `Export/Ffmpeg.cs`): FFmpeg on the
+  PATH. A worker thread grabs the region into a reused DIB (pointer drawn in with DrawIconEx) and pipes
+  raw BGRA to FFmpeg, repeating a late frame so the clip keeps real time. MP4: libx264 on the fly, 30 fps.
+  GIF: 12 fps near-lossless temp MP4, then palettegen (stats_mode=diff) and paletteuse in two passes.
+  Sizes are made even for 4:2:0. Saved to the default folder and put on the clipboard as a file.
 - **Keyboard capture:** arrows define/nudge the selection, Shift+arrows resize, Ctrl = 10px steps,
   Enter confirms, **Esc abandons the whole capture** (single press — `OverlayWindow.OnKeyDown` →
   `CaptureController.Cancel`; the overlay under the cursor takes keyboard focus in

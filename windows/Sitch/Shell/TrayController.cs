@@ -49,6 +49,12 @@ public sealed class TrayController : IDisposable
 
         var scrollItem = Item($"{Loc.T("Scrolling Capture")}\t{App.Settings.ScrollHotkey}", () => App.Current.ScrollCapture());
         menu.Items.Add(scrollItem);
+        var recordItem = new MenuItem();
+        recordItem.Click += (_, _) => App.Current.Record();
+        var recordOther = new MenuItem();
+        recordOther.Click += (_, _) => App.Current.Record(App.Settings.RecordFormat == "mp4" ? "gif" : "mp4");
+        menu.Items.Add(recordItem);
+        menu.Items.Add(recordOther);
         var recaptureItem = Item($"{Loc.T("Recapture Last Region")}\t{App.Settings.RecaptureHotkey}", () => App.Current.RecaptureLast());
         menu.Items.Add(recaptureItem);
         var quickCopyItem = Item($"{Loc.T("Quick Capture → Clipboard")}\t{App.Settings.QuickCopyHotkey}", () => App.Current.QuickCapture(toClipboard: true));
@@ -58,6 +64,9 @@ public sealed class TrayController : IDisposable
             captureItem.Header = $"{Loc.T("Capture Region")}\t{App.Settings.CaptureHotkey}";
             recaptureItem.Header = $"{Loc.T("Recapture Last Region")}\t{App.Settings.RecaptureHotkey}";
             scrollItem.Header = $"{Loc.T("Scrolling Capture")}\t{App.Settings.ScrollHotkey}";
+            bool mp4 = App.Settings.RecordFormat == "mp4";
+            recordItem.Header = $"{Loc.T(mp4 ? "Record Video (MP4)" : "Record GIF")}\t{App.Settings.RecordHotkey}";
+            recordOther.Header = Loc.T(mp4 ? "Record GIF" : "Record Video (MP4)");
             quickCopyItem.Header = $"{Loc.T("Quick Capture → Clipboard")}\t{App.Settings.QuickCopyHotkey}";
         };
         menu.Items.Add(new Separator());

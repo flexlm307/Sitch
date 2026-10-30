@@ -158,6 +158,10 @@ public sealed class OverlayWindow : Window
                 _controller.ScrollTarget();
                 e.Handled = true;
                 break;
+            case Key.R when Keyboard.Modifiers == ModifierKeys.None:
+                _controller.RecordTarget();
+                e.Handled = true;
+                break;
             case Key.C when Keyboard.Modifiers is ModifierKeys.None or ModifierKeys.Shift:
                 _controller.CopyColor(asRgb: shift);
                 e.Handled = true;

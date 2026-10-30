@@ -19,6 +19,7 @@ public partial class App : Application
     public const int HkQuickCopy = 3;
     public const int HkPin = 4;
     public const int HkScroll = 5;
+    public const int HkRecord = 6;
 
     /// <summary>The global hotkeys in Settings/tray order; Name labels them in conflict messages.</summary>
     public static readonly (int Id, string Name, Func<AppSettings, string> Get)[] HotkeySlots =
@@ -28,6 +29,7 @@ public partial class App : Application
         (HkQuickCopy, "Capture to clipboard", s => s.QuickCopyHotkey),
         (HkPin, "Pin clipboard image", s => s.PinHotkey),
         (HkScroll, "Scrolling capture", s => s.ScrollHotkey),
+        (HkRecord, "Record screen", s => s.RecordHotkey),
     ];
 
     private SingleInstance? _instance;
@@ -187,6 +189,7 @@ public partial class App : Application
             case HkQuickCopy: QuickCapture(toClipboard: true); break;
             case HkPin: Pins.PinClipboard(); break;
             case HkScroll: ScrollCapture(); break;
+            case HkRecord: Record(); break;
         }
     }
 
@@ -258,6 +261,17 @@ public partial class App : Application
         _capture!.StartInteractive(CaptureMode.Region, result =>
         {
             if (result.SourceScreenRect is { } r) ScrollCaptureSession.Start(new Int32Rect(r.X, r.Y, r.Width, r.Height));
+        });
+    }
+
+    /// <summary>Pick the region, then record it (GIF or MP4; null = the format in Settings).</summary>
+    public void Record(string? format = null)
+    {
+        if (RecordingSession.IsActive || ScrollCaptureSession.IsActive) return;
+        _capture!.StartInteractive(CaptureMode.Region, result =>
+        {
+            if (result.SourceScreenRect is { } r)
+                RecordingSession.Start(new Int32Rect(r.X, r.Y, r.Width, r.Height), format ?? Settings.RecordFormat);
         });
     }
 

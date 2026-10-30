@@ -70,6 +70,13 @@ public partial class SettingsWindow : Window
         WireHotkeyRecorder(PinBox, App.HkPin, chord => { s.PinHotkey = chord; Save(); });
         ScrollBox.Text = s.ScrollHotkey;
         WireHotkeyRecorder(ScrollBox, App.HkScroll, chord => { s.ScrollHotkey = chord; Save(); });
+        RecordBox.Text = s.RecordHotkey;
+        WireHotkeyRecorder(RecordBox, App.HkRecord, chord => { s.RecordHotkey = chord; Save(); });
+        (s.RecordFormat == "mp4" ? RecMp4 : RecGif).IsChecked = true;
+        RecGif.Checked += (_, _) => { if (_loading) return; s.RecordFormat = "gif"; Save(); };
+        RecMp4.Checked += (_, _) => { if (_loading) return; s.RecordFormat = "mp4"; Save(); };
+        ChkRecPointer.IsChecked = s.RecordPointer;
+        ChkRecPointer.Click += (_, _) => { s.RecordPointer = ChkRecPointer.IsChecked == true; Save(); };
 
         FolderBox.Text = s.DefaultSaveFolder;
         FolderBox.LostFocus += (_, _) => { s.DefaultSaveFolder = FolderBox.Text.Trim(); Save(); };
