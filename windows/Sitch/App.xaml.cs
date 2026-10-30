@@ -32,6 +32,9 @@ public partial class App : Application
     private CaptureController? _capture;
     private ScreenshotWatcher? _watcher;
 
+    /// <summary>The screenshot line (merged from Snapline); null while it is off or Snapline itself runs.</summary>
+    public Shelf.ShelfController? Shelf { get; private set; }
+
     public CaptureController Capture => _capture!;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -59,6 +62,14 @@ public partial class App : Application
             return;
         }
 
+        // The line ticks 30 times a second; one bad frame there is logged, not fatal to Sitch.
+        DispatcherUnhandledException += (_, ex) =>
+        {
+            if (ex.Exception.StackTrace?.Contains("Sitch.Shelf.", StringComparison.Ordinal) != true) return;
+            Sitch.Shelf.Core.Log.Error($"Unhandled in the line: {ex.Exception}");
+            ex.Handled = true;
+        };
+
         Settings = SettingsStore.Load();
         StartupManager.MigrateLegacy();
         StartupManager.RegisterAppPath();
@@ -71,6 +82,7 @@ public partial class App : Application
 
         _tray = new TrayController();
         UpdateScreenshotWatcher();
+        UpdateShelf();
 
         HandleArgs(e.Args);
 
@@ -86,6 +98,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _watcher?.Dispose();
+        Shelf?.Dispose();
         _hotkeys?.Dispose();
         _tray?.Dispose();
         _instance?.Dispose();
@@ -227,6 +240,7 @@ public partial class App : Application
                 var path = Exporters.QuickSave(result.Bitmap);
                 NotifyPopup.Show($"Saved {Path.GetFileName(path)}", result.Bitmap);
             }
+            if (Settings.AfterHang) Shelf?.HangBitmap(result.Bitmap, result.SourceScreenRect);
         });
     }
 
@@ -269,6 +283,11 @@ public partial class App : Application
         {
             var path = Exporters.QuickSave(result.Bitmap);
             NotifyPopup.Show($"Saved {Path.GetFileName(path)}", result.Bitmap);
+            any = true;
+        }
+        if (Settings.AfterHang && Shelf is not null)
+        {
+            Shelf.HangBitmap(result.Bitmap, result.SourceScreenRect);
             any = true;
         }
         if (into is not null)
@@ -347,6 +366,37 @@ public partial class App : Application
     {
         _watcher?.Dispose();
         _watcher = Settings.WatchSystemScreenshots ? new ScreenshotWatcher(path => OpenImageFile(path)) : null;
+    }
+
+    /// <summary>The standalone Snapline app is running: two lines would fight over the top edge.</summary>
+    public static bool SnaplineRunning
+    {
+        get
+        {
+            if (!Mutex.TryOpenExisting(@"Local\Snapline.SingleInstance", out var m)) return false;
+            m.Dispose();
+            return true;
+        }
+    }
+
+    /// <summary>Starts or stops the screenshot line to match <see cref="AppSettings.LineEnabled"/>.</summary>
+    public void UpdateShelf()
+    {
+        bool want = Settings.LineEnabled && !SnaplineRunning;
+        if (want == Shelf is not null) return;
+        if (!want)
+        {
+            Shelf!.Dispose();
+            Shelf = null;
+            return;
+        }
+        try { Shelf = new Shelf.ShelfController(); }
+        catch (Exception ex)
+        {
+            // The line is an extra: Sitch keeps capturing and editing without it.
+            Sitch.Shelf.Core.Log.Error($"Could not start the line: {ex}");
+            Shelf = null;
+        }
     }
 
     public void QuitRequested()

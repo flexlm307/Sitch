@@ -63,6 +63,31 @@ public sealed class TrayController : IDisposable
         menu.Items.Add(new Separator());
         menu.Items.Add(Item("Open Image…", OpenImageDialog));
         menu.Items.Add(new Separator());
+
+        // The screenshot line (merged from Snapline): present only while it runs.
+        var lineItem = new MenuItem();
+        lineItem.Click += (_, _) => App.Current.Shelf?.Toggle();
+        var noteHost = new MenuItem { Header = "New Note" };
+        var lineSettings = Item("Line Settings…", () => App.Current.Shelf?.ShowSettings());
+        var lineSeparator = new Separator();
+        menu.Items.Add(lineItem);
+        menu.Items.Add(noteHost);
+        menu.Items.Add(lineSettings);
+        menu.Items.Add(lineSeparator);
+        menu.Opened += (_, _) =>
+        {
+            var shelf = App.Current.Shelf;
+            var vis = shelf is null ? Visibility.Collapsed : Visibility.Visible;
+            lineItem.Visibility = noteHost.Visibility = lineSettings.Visibility = lineSeparator.Visibility = vis;
+            if (shelf is null) return;
+            lineItem.Header = $"{(shelf.IsRevealed ? "Hide" : "Show")} Screenshot Line\t{shelf.HotKeyText}";
+            noteHost.Items.Clear();
+            foreach (var color in Sitch.Shelf.Core.Notes.Colors)
+            {
+                var c = color;
+                noteHost.Items.Add(Item(char.ToUpperInvariant(c[0]) + c[1..], () => App.Current.Shelf?.NewNote(c)));
+            }
+        };
         menu.Items.Add(Item("Settings…", () => App.Current.ShowSettings()));
         menu.Items.Add(Item("About Sitch", ShowAbout));
         menu.Items.Add(new Separator());

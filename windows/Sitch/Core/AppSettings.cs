@@ -28,6 +28,10 @@ public class AppSettings
     /// <summary>Every capture lands on the clipboard immediately, ready to paste (on by default).</summary>
     public bool AfterCopy { get; set; } = true;
     public bool AfterSave { get; set; }
+    /// <summary>Hang every capture on the screenshot line (the merged Snapline), when the line is on.</summary>
+    public bool AfterHang { get; set; } = true;
+    /// <summary>The screenshot line along the top of the screen. Its own settings live in Shelf.Core.Settings.</summary>
+    public bool LineEnabled { get; set; } = true;
     /// <summary>0 = off; 3, 5 or 10 seconds.</summary>
     public int TimerSeconds { get; set; }
     public bool WatchSystemScreenshots { get; set; }

@@ -72,6 +72,19 @@ public partial class SettingsWindow : Window
         ChkAfterShow.Click += (_, _) => { s.AfterShowEditor = ChkAfterShow.IsChecked == true; Save(); };
         ChkAfterCopy.Click += (_, _) => { s.AfterCopy = ChkAfterCopy.IsChecked == true; Save(); };
         ChkAfterSave.Click += (_, _) => { s.AfterSave = ChkAfterSave.IsChecked == true; Save(); };
+        ChkAfterHang.IsChecked = s.AfterHang;
+        ChkAfterHang.Click += (_, _) => { s.AfterHang = ChkAfterHang.IsChecked == true; Save(); };
+
+        ChkLine.IsChecked = s.LineEnabled;
+        ChkLine.Click += (_, _) =>
+        {
+            s.LineEnabled = ChkLine.IsChecked == true;
+            Save();
+            App.Current.UpdateShelf();
+            SyncLineControls();
+        };
+        BtnLineSettings.Click += (_, _) => App.Current.Shelf?.ShowSettings();
+        SyncLineControls();
 
         foreach (var t in new[] { "Off", "3 s", "5 s", "10 s" }) TimerCombo.Items.Add(t);
         TimerCombo.SelectedIndex = s.TimerSeconds switch { 3 => 1, 5 => 2, 10 => 3, _ => 0 };
@@ -134,6 +147,15 @@ public partial class SettingsWindow : Window
     }
 
     private static void Save() => SettingsStore.Save(App.Settings);
+
+    private void SyncLineControls()
+    {
+        var shelf = App.Current.Shelf;
+        BtnLineSettings.IsEnabled = shelf is not null;
+        ChkAfterHang.IsEnabled = App.Settings.LineEnabled;
+        LineHint.Text = shelf is not null ? $"Show or hide it with {shelf.HotKeyText}"
+            : App.Settings.LineEnabled && App.SnaplineRunning ? "Quit Snapline to use the line here" : "";
+    }
 
     /// <summary>Click the box, press a combination, done. Esc reverts, Backspace also reverts.
     /// A chord another Sitch action already owns is refused and recording continues.</summary>

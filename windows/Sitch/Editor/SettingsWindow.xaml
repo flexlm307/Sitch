@@ -122,6 +122,15 @@
             <CheckBox x:Name="ChkAfterShow" Content="Show the editor"/>
             <CheckBox x:Name="ChkAfterCopy" Content="Copy to clipboard"/>
             <CheckBox x:Name="ChkAfterSave" Content="Save to file"/>
+            <CheckBox x:Name="ChkAfterHang" Content="Hang on the screenshot line"/>
+
+            <TextBlock Text="SCREENSHOT LINE" Style="{StaticResource SectionHeader}"/>
+            <CheckBox x:Name="ChkLine"
+                      Content="Keep captures on a line along the top of the screen"/>
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <Button x:Name="BtnLineSettings" Style="{StaticResource GhostButton}" Content="Line settings…"/>
+                <TextBlock x:Name="LineHint" VerticalAlignment="Center" Margin="10,0,0,0" Opacity="0.7"/>
+            </StackPanel>
 
             <TextBlock Text="TIMER &amp; WATCHER" Style="{StaticResource SectionHeader}"/>
             <StackPanel Orientation="Horizontal">

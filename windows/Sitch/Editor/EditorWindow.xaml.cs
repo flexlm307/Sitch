@@ -21,7 +21,7 @@ public partial class EditorWindow : Window
     {
         public required Document Doc;
         public required string Name;
-        /// <summary>Set for <c>--edit</c> (e.g. Snapline's "Edit in Sitch"): Save writes back to this file.</summary>
+        /// <summary>Set for <c>--edit</c> and for photos opened from the screenshot line: Save writes back to this file.</summary>
         public string? SaveBackPath;
         public double SavedZoom = 1.0;
         public bool ZoomInitialized;
@@ -1273,6 +1273,7 @@ public partial class EditorWindow : Window
         {
             Exporters.Save(RenderFinal(), path);
             _doc.Dirty = false;
+            App.Current.Shelf?.FileSaved(path);
             NotifyPopup.Show($"Saved {IOPath.GetFileName(path)}");
         }
         catch (Exception ex)
