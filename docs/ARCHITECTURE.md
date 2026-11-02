@@ -109,6 +109,11 @@ capture orchestration, window management), `app.manifest` (PMv2), `Sitch.csproj`
   `Editor/OcrWindow.cs`). `OcrEngine` = "Windows" (built in) or "RapidOCR": `RapidOcr.cs` keeps one
   Python worker (`pip install rapidocr`) alive across reads (model load costs seconds), exits after
   10 idle minutes, and on any failure Windows' engine reads instead.
+- **Capture to Emacs** (`Export/EmacsCapture.cs`, `--capture-to-emacs=<folder>`, Windows only): the
+  screenshot half of an AutoHotkey one-key capture. The source window title is read before the overlay,
+  the region is saved as PNG and OCR'd into a UTF-8 request file in `<folder>`, and `emacsclient.exe -e`
+  (hidden console; `emacsclientw` would show the result in a message box) gets only the request's path —
+  emacsclient does not carry non-ASCII arguments intact. No emacsclient: quick-save instead.
 - **Restore as Markdown** (`Export/MinerU.cs`, shown only with `MinerUFolder` set): editor "MD" /
   Ctrl+Shift+M, a pin's menu, the line's menu. One `mineru-api` server (`python -m mineru.cli.fast_api`,
   localhost, free port — the .exe launcher resolves the ASCII junction back to a non-ASCII path where

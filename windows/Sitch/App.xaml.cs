@@ -143,6 +143,9 @@ public partial class App : Application
                 case "--demo-light": DemoMode.OpenEditorDemo(lightTheme: true); break;
                 case "--settings": ShowSettings(); break;
                 case "--capture": CaptureRegion(); break;
+                case var emacs when emacs.StartsWith("--capture-to-emacs=", StringComparison.Ordinal):
+                    CaptureToEmacs(emacs["--capture-to-emacs=".Length..]);
+                    break;
                 case var edit when edit.StartsWith("--edit=", StringComparison.Ordinal):
                     if (File.Exists(edit[7..])) OpenImageFile(edit[7..], saveBack: true);
                     break;
@@ -252,6 +255,20 @@ public partial class App : Application
                 NotifyPopup.Show(Loc.F("Saved {0}", Path.GetFileName(path)), result.Bitmap);
             }
             if (Settings.AfterHang) Shelf?.HangBitmap(result.Bitmap, result.SourceScreenRect);
+        });
+    }
+
+    /// <summary>
+    /// AutoHotkey's one-key capture with nothing selected: region → OCR → an Emacs capture entry. Skips the
+    /// after-capture actions; the frame goes to Emacs only (see Export/EmacsCapture).
+    /// </summary>
+    public void CaptureToEmacs(string folder)
+    {
+        var source = EmacsCapture.ForegroundTitle();
+        _capture!.StartInteractive(CaptureMode.Region, result =>
+        {
+            RememberRegion(result);
+            _ = EmacsCapture.SendAsync(result.Bitmap, folder, source);
         });
     }
 

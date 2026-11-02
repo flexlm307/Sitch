@@ -274,6 +274,8 @@ public static class Loc
         ["Reading text…"] = "正在识别文字…",
         ["Could not read text."] = "无法识别文字。",
         ["No text found."] = "没有识别到文字。",
+        ["Emacs was not found; saved {0} instead."] = "没有找到 Emacs，截图已另存为 {0}。",
+        ["Could not send the capture to Emacs: {0}"] = "无法把截图发送到 Emacs：{0}",
         ["Windows has no OCR language installed. Add one in Settings > Time & language > Language."] =
             "Windows 没有安装 OCR 语言。请在 设置 > 时间和语言 > 语言 中添加。",
         ["TOOLS"] = "工具",

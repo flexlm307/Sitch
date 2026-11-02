@@ -44,6 +44,9 @@ Versioning & release and Guardrails cover both.
   (`EDIT <path>`) when Sitch is running. Sitch writes an HKCU `App Paths\Sitch.exe` entry each start
   so Snapline can find the portable exe.
 - `--shot-region=<path>` — headless render-and-exit; skips the single-instance mutex.
+- `--capture-to-emacs=<folder>` — region capture → PNG + OCR into `<folder>` → an Emacs capture entry via
+  `emacsclient` (`Export/EmacsCapture.cs`). Sent by the user's AutoHotkey bridge when no text is selected;
+  skips the after-capture actions. Windows only.
 - A second launch **forwards its args to the already-running tray instance** over a named pipe, so
   `--demo` opens nothing if an instance is running. Quit the tray app first to test a fresh launch.
 
