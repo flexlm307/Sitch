@@ -46,7 +46,9 @@ Versioning & release and Guardrails cover both.
 - `--shot-region=<path>` — headless render-and-exit; skips the single-instance mutex.
 - `--capture-to-emacs=<folder>` — region capture → PNG + OCR into `<folder>` → an Emacs capture entry via
   `emacsclient` (`Export/EmacsCapture.cs`). Sent by the user's AutoHotkey bridge when no text is selected;
-  skips the after-capture actions. Windows only.
+  skips the after-capture actions. Windows only. Forwarded to a running Sitch as `CAPTURE_EMACS <folder>`.
+- Forwarding is a whitelist in `SingleInstance.SendToPrimary`, not a pass-through: a new flag that must
+  reach the tray instance needs its own pipe message there and in `App.OnIpcMessage`, or it becomes `FOCUS`.
 - A second launch **forwards its args to the already-running tray instance** over a named pipe, so
   `--demo` opens nothing if an instance is running. Quit the tray app first to test a fresh launch.
 

@@ -125,6 +125,8 @@ public partial class App : Application
                 OpenImageFile(message[5..], saveBack: true);
             else if (message == "CAPTURE")
                 CaptureRegion();
+            else if (message.StartsWith("CAPTURE_EMACS ", StringComparison.Ordinal))
+                CaptureToEmacs(message["CAPTURE_EMACS ".Length..]);
             else if (message == "SETTINGS")
                 ShowSettings();
             else if (message == "FOCUS")
